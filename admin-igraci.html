@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="sr">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+      <title>Upravljanje igračima</title>
+      <script type="module" src="firebase.mjs"></script>
+      <style>
+         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+         :root {
+         --admin-bg-a: #eaf5ff;
+         --admin-bg-b: #f4fffb;
+         --admin-brand: #0b66b8;
+         --admin-brand-2: #0ea5a6;
+         --admin-ink: #0f172a;
+         --admin-border: #dce7f5;
+         }
+         * {
+         box-sizing: border-box;
+         margin: 0;
+         padding: 0;
+         }
+         body {
+         font-family: 'Plus Jakarta Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+         background:
+           radial-gradient(1100px 420px at 10% -10%, rgba(11, 102, 184, 0.15), transparent 55%),
+           radial-gradient(900px 360px at 100% 0%, rgba(14, 165, 166, 0.12), transparent 45%),
+           linear-gradient(180deg, var(--admin-bg-a) 0%, var(--admin-bg-b) 100%);
+         min-height: 100vh;
+         padding: 20px 10px;
+         color: var(--admin-ink);
+         }
+         .container {
+         max-width: 900px;
+         margin: 0 auto;
+         }
+         /* HEADER */
+         header {
+         background: white;
+         border-radius: 16px;
+         padding: 20px 30px;
+         margin-bottom: 20px;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         flex-wrap: wrap;
+         gap: 15px;
+         }
+         .logo {
+         font-size: 24px;
+         font-weight: bold;
+         background: linear-gradient(120deg, #0b66b8 0%, #0ea5a6 100%);
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         background-clip: text;
+         }
+         .nav-buttons {
+         display: flex;
+         gap: 10px;
+         }
+         .nav-btn {
+         padding: 10px 20px;
+         border: none;
+         border-radius: 10px;
+         font-size: 14px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         background: #f0f0f0;
+         color: #333;
+         }
+         .nav-btn:hover {
+         background: #e0e0e0;
+         transform: translateY(-2px);
+         }
+         .nav-btn.active {
+         background: linear-gradient(135deg, #0b66b8 0%, #0ea5a6 100%);
+         color: white;
+         box-shadow: 0 8px 20px rgba(11, 102, 184, 0.2);
+         }
+         .nav-btn.logout {
+         background: #ff4757;
+         color: white;
+         }
+         .nav-btn.logout:hover {
+         background: #ee5a6f;
+         }
+         /* MAIN CARD */
+         .card {
+         background: white;
+         border-radius: 16px;
+         padding: 30px;
+         margin-bottom: 20px;
+         box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+         border: 1px solid var(--admin-border);
+         }
+         .card-title {
+         font-size: 22px;
+         font-weight: 700;
+         margin-bottom: 25px;
+         color: #2d3436;
+         text-align: center;
+         }
+         /* FORM STYLING */
+         .form-group {
+         margin-bottom: 20px;
+         }
+         .form-label {
+         display: block;
+         font-size: 13px;
+         font-weight: 600;
+         color: #636e72;
+         margin-bottom: 8px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         }
+         input, textarea {
+         width: 100%;
+         padding: 14px 16px;
+         border: 2px solid #e0e0e0;
+         border-radius: 10px;
+         font-size: 15px;
+         transition: all 0.3s ease;
+         font-family: inherit;
+         }
+         input:focus, textarea:focus {
+         outline: none;
+         border-color: var(--admin-brand);
+         box-shadow: 0 0 0 4px rgba(11, 102, 184, 0.12);
+         }
+         textarea {
+         min-height: 100px;
+         resize: vertical;
+         }
+         .input-row {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         gap: 15px;
+         }
+         /* TEAM TITLE */
+         .team-title {
+         font-size: 22px;
+         font-weight: bold;
+         margin: 25px 0 15px;
+         }
+         /* BADGES */
+         .captain-badge {
+         display: inline-block;
+         background: linear-gradient(135deg, #ffd700, #ffed4e);
+         color: #333;
+         font-weight: bold;
+         padding: 2px 6px;
+         border-radius: 4px;
+         margin-left: 6px;
+         font-size: 10px;
+         box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+         }
+         .goalkeeper-badge {
+         margin-left: 6px;
+         font-size: 16px;
+         }
+         /* ACTION BUTTONS */
+         .btn, .add-btn {
+         width: 100%;
+         padding: 16px;
+         border: none;
+         border-radius: 12px;
+         font-size: 16px;
+         font-weight: 700;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         margin-top: 15px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         }
+         .add-btn {
+         background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+         color: white;
+         box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+         margin-top: 0;
+         padding: 14px 20px;
+         }
+         .add-btn:hover {
+         box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+         transform: translateY(-2px);
+         }
+         #resetStatsBtn {
+         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+         color: white;
+         box-shadow: 0 12px 28px rgba(220, 38, 38, 0.28);
+         border: 1px solid rgba(153, 27, 27, 0.35);
+         border-radius: 14px;
+         width: 100%;
+         max-width: 520px;
+         display: block;
+         margin-left: auto;
+         margin-right: auto;
+         margin-bottom: 22px;
+         padding: 14px 18px;
+         font-size: 14px;
+         font-weight: 800;
+         letter-spacing: 0.02em;
+         text-transform: none;
+         line-height: 1.25;
+         cursor: pointer;
+         transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+         }
+         #resetStatsBtn:hover {
+         box-shadow: 0 16px 34px rgba(220, 38, 38, 0.34);
+         transform: translateY(-1px);
+         filter: saturate(1.04);
+         }
+         #resetStatsBtn:active {
+         transform: translateY(0);
+         }
+         /* MATCHES TABLE */
+         .table-wrapper {
+         overflow-x: auto;
+         overflow-y: auto;
+         margin-top: 25px;
+         border-radius: 12px;
+         border: 1px solid var(--admin-border);
+         background: #fff;
+         max-height: 380px;
+         box-shadow: inset 0 0 0 1px rgba(220, 231, 245, 0.45);
+         }
+         .table-wrapper::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         .table-wrapper::-webkit-scrollbar-thumb {
+         background: rgba(11, 102, 184, 0.35);
+         border-radius: 999px;
+         }
+         .table-wrapper::-webkit-scrollbar-track {
+         background: rgba(148, 163, 184, 0.2);
+         border-radius: 999px;
+         }
+         table {
+         width: 100%;
+         border-collapse: collapse;
+         min-width: 600px;
+         }
+         th {
+         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+         padding: 15px 12px;
+         text-align: left;
+         font-size: 13px;
+         font-weight: 700;
+         color: #636e72;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         border-bottom: 2px solid #e0e0e0;
+         cursor: pointer;
+         user-select: none;
+         position: sticky;
+         top: 0;
+         z-index: 2;
+         }
+         th:hover {
+         background: #e0e0e0;
+         }
+         th.sorted-asc::after {
+         content: " ▲";
+         font-size: 12px;
+         color: #0b66b8;
+         }
+         th.sorted-desc::after {
+         content: " ▼";
+         font-size: 12px;
+         color: #0b66b8;
+         }
+         td {
+         padding: 15px 12px;
+         border-bottom: 1px solid #f0f0f0;
+         font-size: 14px;
+         color: #2d3436;
+         text-align: center;
+         }
+         tr:hover {
+         background: #f6fafe;
+         }
+         .edit-btn, .del-btn {
+         padding: 8px 14px;
+         border: none;
+         border-radius: 8px;
+         font-size: 12px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.2s ease;
+         margin-right: 6px;
+         }
+         .row-actions {
+         display: inline-flex;
+         align-items: center;
+         justify-content: flex-end;
+         gap: 8px;
+         width: 100%;
+         }
+         .edit-btn {
+         background: #0b66b8;
+         color: white;
+         }
+         .edit-btn:hover {
+         background: #095ca8;
+         transform: scale(1.05);
+         }
+         .del-btn {
+         background: #ff4757;
+         color: white;
+         }
+         .del-btn:hover {
+         background: #ee5a6f;
+         transform: scale(1.05);
+         }
+         /* MODAL */
+         #modalOverlay {
+         display: none;
+         position: fixed;
+         inset: 0;
+         background: rgba(0, 0, 0, 0.7);
+         justify-content: center;
+         align-items: center;
+         backdrop-filter: blur(4px);
+         z-index: 999;
+         padding: 20px;
+         }
+         #modalBox {
+         background: white;
+         padding: 0;
+         border-radius: 16px;
+         width: 90%;
+         max-width: 420px;
+         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+         animation: slideUp 0.3s ease;
+         max-height: 90vh;
+         overflow: hidden;
+         display: flex;
+         flex-direction: column;
+         }
+         @keyframes slideUp {
+         from {
+         transform: translateY(50px);
+         opacity: 0;
+         }
+         to {
+         transform: translateY(0);
+         opacity: 1;
+         }
+         }
+         .modal-head {
+         position: sticky;
+         top: 0;
+         z-index: 5;
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 12px;
+         padding: 16px 18px;
+         border-bottom: 1px solid #e8eef7;
+         background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+         }
+         #modalBox h3 {
+         margin: 0;
+         color: #2d3436;
+         font-size: 20px;
+         line-height: 1.2;
+         }
+         #renameClose {
+         cursor: pointer;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         width: 34px;
+         height: 34px;
+         border-radius: 999px;
+         border: 1px solid #dbe5f4;
+         background: #fff;
+         color: #334155;
+         font-size: 20px;
+         line-height: 1;
+         transition: all 0.2s ease;
+         }
+         #renameClose:hover {
+         color: #0b66b8;
+         border-color: #b8d1f0;
+         transform: rotate(90deg) scale(1.04);
+         }
+         #renameInput {
+         margin: 16px 18px 0;
+         }
+         .modal-buttons {
+         display: flex;
+         gap: 10px;
+         margin: 18px;
+         justify-content: flex-end;
+         }
+         .modal-buttons button {
+         padding: 12px 24px;
+         border: none;
+         border-radius: 10px;
+         cursor: pointer;
+         font-size: 16px;
+         min-height: 48px;
+         flex: 1;
+         font-weight: 600;
+         transition: all 0.3s ease;
+         }
+         #renameCancel {
+         background: #636e72;
+         color: white;
+         }
+         #renameCancel:hover {
+         background: #4a5558;
+         transform: translateY(-2px);
+         }
+         #renameConfirm {
+         background: linear-gradient(135deg, #0b66b8 0%, #0ea5a6 100%);
+         color: white;
+         box-shadow: 0 8px 20px rgba(11, 102, 184, 0.2);
+         }
+         #renameConfirm:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 10px 24px rgba(11, 102, 184, 0.24);
+         }
+         /* MOBILE RESPONSIVE */
+         @media (max-width: 768px) {
+         body {
+         padding: 10px 5px;
+         }
+         .container {
+         max-width: 100%;
+         }
+         header {
+         padding: 15px 20px;
+         border-radius: 12px;
+         flex-direction: column;
+         align-items: stretch;
+         }
+         .logo {
+         text-align: center;
+         font-size: 20px;
+         }
+         .nav-buttons {
+         flex-direction: column;
+         }
+         .nav-btn {
+         width: 100%;
+         text-align: center;
+         }
+         .card {
+         padding: 20px;
+         border-radius: 12px;
+         }
+         .card-title {
+         font-size: 20px;
+         }
+         .input-row {
+         grid-template-columns: 1fr;
+         }
+         .team-title {
+         font-size: 20px;
+         margin: 20px 0 12px;
+         }
+         table {
+         min-width: 450px;
+         }
+         .table-wrapper {
+         max-height: 340px;
+         }
+         th, td {
+         padding: 8px 4px;
+         font-size: 11px;
+         }
+         th {
+         padding: 10px 6px;
+         }
+         .edit-btn, .del-btn {
+         padding: 6px 10px;
+         font-size: 10px;
+         display: block;
+         width: 100%;
+         margin: 2px 0;
+         }
+         #modalBox {
+         padding: 0;
+         width: 95%;
+         }
+         .modal-buttons {
+         flex-direction: column;
+         }
+         }
+         @media (max-width: 480px) {
+         .card {
+         padding: 15px;
+         }
+         .team-title {
+         font-size: 18px;
+         }
+         table {
+         min-width: 400px;
+         }
+         .table-wrapper {
+         max-height: 300px;
+         }
+         th, td {
+         padding: 6px 2px;
+         font-size: 10px;
+         }
+         th {
+         padding: 8px 4px;
+         }
+         .edit-btn, .del-btn {
+         padding: 5px 8px;
+         font-size: 9px;
+         }
+         .captain-badge {
+         font-size: 8px;
+         padding: 1px 4px;
+         }
+         .goalkeeper-badge {
+         font-size: 14px;
+         }
+         }
+         @media (max-width: 640px) {
+         .table-wrapper table,
+         .table-wrapper thead,
+         .table-wrapper tbody,
+         .table-wrapper tr,
+         .table-wrapper th,
+         .table-wrapper td {
+         display: block;
+         width: 100%;
+         }
+         .table-wrapper thead {
+         display: none;
+         }
+         .table-wrapper tr {
+         border: 1px solid #eceff1;
+         border-radius: 10px;
+         padding: 10px;
+         margin-bottom: 10px;
+         background: #fff;
+         }
+         .table-wrapper td {
+         border: none;
+         padding: 6px 4px;
+         text-align: left;
+         }
+         .table-wrapper td[data-label]::before {
+         content: attr(data-label) ": ";
+         font-weight: 700;
+         color: #636e72;
+         }
+         .table-wrapper td:last-child {
+         display: flex;
+         gap: 8px;
+         }
+         .table-wrapper td:last-child .edit-btn,
+         .table-wrapper td:last-child .del-btn {
+         flex: 1;
+         margin: 0;
+         }
+         }
+         a:focus-visible,
+         button:focus-visible,
+         input:focus-visible,
+         textarea:focus-visible {
+         outline: 3px solid var(--admin-brand);
+         outline-offset: 2px;
+         }
+         @media (prefers-reduced-motion: reduce) {
+         * {
+         animation: none !important;
+         transition: none !important;
+         scroll-behavior: auto !important;
+         }
+         }
+         /* === Redesign V2 === */
+         .container {
+         max-width: 980px;
+         }
+         header {
+         border-radius: 20px;
+         border: 1px solid rgba(214, 227, 242, 0.95);
+         box-shadow: 0 20px 46px rgba(15, 23, 42, 0.14);
+         }
+         .logo {
+         letter-spacing: -0.02em;
+         }
+         .nav-btn {
+         min-height: 42px;
+         border-radius: 12px;
+         }
+         .card {
+         border-radius: 20px;
+         box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+         }
+         .card-title {
+         letter-spacing: -0.02em;
+         }
+         input, textarea {
+         border-radius: 12px;
+         }
+         .btn,
+         .add-btn {
+         border-radius: 12px;
+         min-height: 46px;
+         }
+         .table-wrapper {
+         border-radius: 14px;
+         box-shadow: inset 0 0 0 1px rgba(220, 231, 245, 0.7), 0 10px 28px rgba(15, 23, 42, 0.08);
+         }
+         th {
+         font-size: 11px;
+         letter-spacing: 0.04em;
+         }
+         td {
+         font-size: 14px;
+         }
+         .edit-btn,
+         .del-btn {
+         border-radius: 10px;
+         }
+         .edit-btn,
+         .del-btn {
+         min-height: 34px;
+         min-width: 84px;
+         margin-right: 0;
+         border-radius: 10px;
+         font-weight: 700;
+         }
+         .edit-btn {
+         background: linear-gradient(135deg, #0b66b8 0%, #0f7fd8 100%);
+         box-shadow: 0 6px 14px rgba(11, 102, 184, 0.22);
+         }
+         .del-btn {
+         background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+         box-shadow: 0 6px 14px rgba(225, 29, 72, 0.2);
+         }
+         .edit-btn:hover,
+         .del-btn:hover {
+         transform: translateY(-1px);
+         }
+         #modalBox {
+         border-radius: 18px;
+         box-shadow: 0 26px 70px rgba(2, 6, 23, 0.35);
+         }
+         .modal-head {
+         padding: 14px 16px;
+         }
+         .modal-buttons button {
+         border-radius: 10px;
+         min-height: 42px;
+         }
+         @media (max-width: 768px) {
+         header,
+         .card {
+         border-radius: 16px;
+         }
+         .card {
+         padding: 22px 16px;
+         }
+         .nav-buttons {
+         width: 100%;
+         display: grid;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+         gap: 8px;
+         padding: 8px;
+         border-radius: 14px;
+         background: #f5f9ff;
+         border: 1px solid #d9e7f8;
+         }
+         .nav-btn {
+         width: 100%;
+         min-height: 40px;
+         padding: 10px 12px;
+         font-size: 13px;
+         border-radius: 10px;
+         margin: 0;
+         }
+         .nav-btn.logout {
+         grid-column: 1 / -1;
+         }
+         table {
+         min-width: 620px;
+         }
+         th, td {
+         font-size: 12px;
+         padding: 10px 8px;
+         }
+         .row-actions {
+         flex-wrap: nowrap;
+         justify-content: flex-start;
+         }
+         .edit-btn,
+         .del-btn {
+         min-width: 76px;
+         font-size: 11px;
+         padding: 7px 10px;
+         }
+         #resetStatsBtn {
+         font-size: 13px;
+         padding: 13px 14px;
+         }
+         }
+         @media (max-width: 480px) {
+         .nav-buttons {
+         grid-template-columns: minmax(0, 1fr);
+         }
+         .nav-btn.logout {
+         grid-column: auto;
+         }
+         table {
+         min-width: 600px;
+         }
+         th, td {
+         font-size: 12px;
+         padding: 10px 8px;
+         }
+         #resetStatsBtn {
+         max-width: 100%;
+         font-size: 12.5px;
+         line-height: 1.3;
+         }
+         }
+         @media (max-width: 640px) {
+         .table-wrapper table {
+         display: table;
+         width: 100%;
+         min-width: 600px;
+         }
+         .table-wrapper thead {
+         display: table-header-group;
+         }
+         .table-wrapper tbody {
+         display: table-row-group;
+         }
+         .table-wrapper tr {
+         display: table-row;
+         }
+         .table-wrapper th,
+         .table-wrapper td {
+         display: table-cell;
+         width: auto;
+         }
+         .table-wrapper td[data-label]::before {
+         content: none;
+         }
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <!-- HEADER -->
+         <header>
+            <div class="logo">⚽ Admin Panel</div>
+            <div class="nav-buttons">
+               <button class="nav-btn" onclick="window.location.href='admin.html'">Mečevi</button>
+               <button class="nav-btn active" onclick="window.location.href='admin-igraci.html'">Igrači</button>
+               <button class="nav-btn logout" onclick="logout()">Logout</button>
+            </div>
+         </header>
+         <script type="module">
+            /* 🔒 AUTH GUARD */
+            window.onAuth(user => {
+              if (!user) {
+                window.location.href = "login.html";
+              }
+            });
+            
+            /* LOGOUT */
+            window.logout = function () {
+              window.logoutAdmin().then(() => {
+                window.location.href = "index.html";
+              });
+            };
+         </script>
+         <!-- MAIN CARD -->
+         <div class="card" id="matchTables">
+            <h1 class="card-title">Upravljanje igračima</h1>
+            <!-- RESET SVIH STATISTIKA -->
+            <button id="resetStatsBtn">
+            Resetuj SVE golove i utakmice
+            </button>
+            <!-- CRVENI -->
+            <div class="team-title" style="color:#d63031;">Crveni</div>
+            <div class="input-row">
+               <input id="redInput" placeholder="Ime igrača">
+               <button class="add-btn" onclick="addPlayer('crveni')">Dodaj</button>
+            </div>
+            <div class="table-wrapper">
+               <table>
+                  <thead>
+                     <tr>
+                        <th data-sort="name" data-team="crveni">Igrač</th>
+                        <th data-sort="goals" data-team="crveni">Golovi</th>
+                        <th data-sort="matches" data-team="crveni">Utakmice</th>
+                        <th>Akcija</th>
+                     </tr>
+                  </thead>
+                  <tbody id="redList"></tbody>
+               </table>
+            </div>
+            <!-- PLAVI -->
+            <div class="team-title" style="color:#0984e3;">Plavi</div>
+            <div class="input-row">
+               <input id="blueInput" placeholder="Ime igrača">
+               <button class="add-btn" onclick="addPlayer('plavi')">Dodaj</button>
+            </div>
+            <div class="table-wrapper">
+               <table>
+                  <thead>
+                     <tr>
+                        <th data-sort="name" data-team="plavi">Igrač</th>
+                        <th data-sort="goals" data-team="plavi">Golovi</th>
+                        <th data-sort="matches" data-team="plavi">Utakmice</th>
+                        <th>Akcija</th>
+                     </tr>
+                  </thead>
+                  <tbody id="blueList"></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+      <!-- MODAL RENAME -->
+      <div id="modalOverlay">
+         <div id="modalBox">
+            <div class="modal-head">
+               <h3>Izmena imena igrača</h3>
+               <button id="renameClose" type="button" aria-label="Zatvori dijalog">✕</button>
+            </div>
+            <input id="renameInput" placeholder="Novo ime...">
+            <div class="modal-buttons">
+               <button id="renameCancel">Otkaži</button>
+               <button id="renameConfirm">Sačuvaj</button>
+            </div>
+         </div>
+      </div>
+      <script type="module">
+         import { onValue, push, set, update, remove, get }
+           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+         
+         /* ------------------ STATE ------------------ */
+         const playersData = {
+           crveni: {},
+           plavi: {}
+         };
+         
+         const sortState = {
+           crveni: { field: 'name', dir: 'asc' },
+           plavi: { field: 'name', dir: 'asc' }
+         };
+         
+         function escapeHtml(value) {
+           return String(value ?? "").replace(/[&<>"']/g, char => ({
+             "&": "&amp;",
+             "<": "&lt;",
+             ">": "&gt;",
+             '"': "&quot;",
+             "'": "&#39;"
+           }[char]));
+         }
+         
+         /* ------------------ FORMAT PLAYER NAME ------------------ */
+         function formatPlayerName(name) {
+           if (!name) return '';
+         
+           let displayName = name;
+           let badges = '';
+         
+           // Check for captain
+           const captainRegex = /\s*\(c\)\s*/i;
+           if (captainRegex.test(name)) {
+             displayName = name.replace(captainRegex, ' ').trim();
+             badges += '<span class="captain-badge">C</span>';
+           }
+         
+           // Check for goalkeeper
+           const goalkeeperRegex = /\s*\(g\)\s*/i;
+           if (goalkeeperRegex.test(name)) {
+             displayName = name.replace(goalkeeperRegex, ' ').trim();
+             badges += '<span class="goalkeeper-badge">🧤</span>';
+           }
+         
+           return escapeHtml(displayName) + badges;
+         }
+         
+         /* ------------------ TEMPLATE ------------------ */
+         function rowTemplate(id, player, team) {
+           const encodedName = encodeURIComponent(player.name || "");
+           return `
+             <tr>
+               <td data-label="Ime">${formatPlayerName(player.name)}</td>
+               <td data-label="Golovi">${player.goals || 0}</td>
+               <td data-label="Utakmice">${player.matches || 0}</td>
+               <td data-label="Akcija">
+                 <div class="row-actions">
+                   <button type="button" class="edit-btn" data-action="rename" data-team="${team}" data-id="${id}" data-name="${encodedName}">Izmeni</button>
+                   <button type="button" class="del-btn" data-action="delete" data-team="${team}" data-id="${id}" data-name="${encodedName}">Obriši</button>
+                 </div>
+               </td>
+             </tr>
+           `;
+         }
+         
+         /* ------------------ RENDER WITH SORTING ------------------ */
+         function renderPlayers(team, elementId) {
+           const tbody = document.getElementById(elementId);
+           const data = playersData[team];
+         
+           // Convert to array
+           let players = Object.entries(data).map(([id, p]) => ({
+             id,
+             name: p.name || "",
+             goals: Number(p.goals) || 0,
+             matches: Number(p.matches) || 0
+           }));
+         
+           // Sort
+           const { field, dir } = sortState[team];
+           players.sort((a, b) => {
+             if (field === 'name') {
+               // Remove badges for sorting
+               const nameA = a.name.replace(/\s*\(c\)\s*/gi, '').replace(/\s*\(g\)\s*/gi, '').trim().toLowerCase();
+               const nameB = b.name.replace(/\s*\(c\)\s*/gi, '').replace(/\s*\(g\)\s*/gi, '').trim().toLowerCase();
+               return dir === 'asc'
+                 ? nameA.localeCompare(nameB, 'sr')
+                 : nameB.localeCompare(nameA, 'sr');
+             } else {
+               if (a[field] === b[field]) {
+                 const nameA = a.name.replace(/\s*\(c\)\s*/gi, '').replace(/\s*\(g\)\s*/gi, '').trim();
+                 const nameB = b.name.replace(/\s*\(c\)\s*/gi, '').replace(/\s*\(g\)\s*/gi, '').trim();
+                 return nameA.localeCompare(nameB, 'sr');
+               }
+               return dir === 'asc' ? a[field] - b[field] : b[field] - a[field];
+             }
+           });
+         
+           // Render
+           tbody.innerHTML = "";
+           players.forEach(p => {
+             tbody.innerHTML += rowTemplate(p.id, p, team);
+           });
+         
+           // Update sort indicators
+           updateSortIndicators(team);
+         }
+         
+         /* ------------------ UPDATE SORT INDICATORS ------------------ */
+         function updateSortIndicators(team) {
+           const { field, dir } = sortState[team];
+         
+           document.querySelectorAll(`th[data-team="${team}"]`).forEach(th => {
+             th.classList.remove('sorted-asc', 'sorted-desc');
+             if (th.dataset.sort === field) {
+               th.classList.add(dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+             }
+           });
+         }
+         
+         /* ------------------ LOAD ------------------ */
+         function loadPlayers(team, elementId) {
+           onValue(window.dbRef("players/" + team), snap => {
+             playersData[team] = snap.val() || {};
+             renderPlayers(team, elementId);
+           });
+         }
+         
+         loadPlayers("crveni","redList");
+         loadPlayers("plavi","blueList");
+         
+         /* ------------------ SORTING EVENT LISTENERS ------------------ */
+         document.addEventListener('DOMContentLoaded', () => {
+           document.querySelectorAll('th[data-sort]').forEach(th => {
+             th.addEventListener('click', () => {
+               const field = th.dataset.sort;
+               const team = th.dataset.team;
+         
+               // Toggle direction if same field, otherwise reset to desc
+               if (sortState[team].field === field) {
+                 sortState[team].dir = sortState[team].dir === 'asc' ? 'desc' : 'asc';
+               } else {
+                 sortState[team].field = field;
+                 sortState[team].dir = field === 'name' ? 'asc' : 'desc';
+               }
+         
+               renderPlayers(team, team === 'crveni' ? 'redList' : 'blueList');
+             });
+           });
+         
+           document.getElementById("matchTables").addEventListener("click", e => {
+             const button = e.target.closest("button[data-action][data-team][data-id][data-name]");
+             if (!button) return;
+             const team = button.dataset.team;
+             const id = button.dataset.id;
+             const name = button.dataset.name;
+             if (button.dataset.action === "rename") {
+               window.openRename(team, id, name);
+               return;
+             }
+             if (button.dataset.action === "delete") {
+               window.deletePlayer(team, id, name);
+             }
+           });
+         });
+         
+         /* ------------------ ADD ------------------ */
+         window.addPlayer = team => {
+           const input = document.getElementById(team === "crveni" ? "redInput" : "blueInput");
+           const name = input.value.trim();
+           if (!name) return;
+         
+           push(window.dbRef("players/" + team), {
+             name, goals: 0, matches: 0
+           });
+         
+           input.value = "";
+         };
+         
+         /* ------------------ DELETE — HARD DELETE ------------------ */
+         window.deletePlayer = async (team, id, encodedName) => {
+           const name = decodeURIComponent(encodedName || "");
+           const cleanName = name.replace(/\s*\(c\)\s*/gi, '').replace(/\s*\(g\)\s*/gi, '').trim();
+           if (!confirm(`Obrisati igrača ${cleanName} i ukloniti ga iz SVIH mečeva?`)) return;
+         
+           const matchesSnap = await get(window.dbRef("matches"));
+           const matches = matchesSnap.val() || {};
+         
+           for (const matchId of Object.keys(matches)) {
+             const m = matches[matchId];
+         
+             // ukloni iz played (po ID-u)
+             if (m.played && m.played[id]) {
+               delete m.played[id];
+             }
+         
+             // ukloni iz scorers (po ID-u)
+             if (m.scorers) {
+               m.scorers = m.scorers.filter(s => s.id !== id);
+             }
+         
+             await update(window.dbRef("matches/" + matchId), {
+               played: m.played || {},
+               scorers: m.scorers || []
+             });
+           }
+         
+           await remove(window.dbRef(`players/${team}/${id}`));
+         };
+         
+         /* ------------------ RENAME ------------------ */
+         let renameTeam = null;
+         let renameId   = null;
+         
+         window.openRename = (team, id, encodedOldName) => {
+           const oldName = decodeURIComponent(encodedOldName || "");
+           renameTeam = team;
+           renameId = id;
+           document.getElementById("renameInput").value = oldName;
+           document.getElementById("modalOverlay").style.display = "flex";
+         };
+         
+         document.getElementById("renameConfirm").onclick = async () => {
+           const newName = document.getElementById("renameInput").value.trim();
+           if (!newName) return;
+         
+           await update(window.dbRef(`players/${renameTeam}/${renameId}`), { name: newName });
+           document.getElementById("modalOverlay").style.display = "none";
+         };
+         
+         document.getElementById("renameCancel").onclick = () => {
+           document.getElementById("modalOverlay").style.display = "none";
+         };
+         document.getElementById("renameClose").onclick = () => {
+           document.getElementById("modalOverlay").style.display = "none";
+         };
+         
+         /* ------------------ RESET STATISTICS ------------------ */
+         document.getElementById("resetStatsBtn").onclick = async () => {
+           if (!confirm("Da li sigurno želiš da resetuješ SVE golove i utakmice?")) return;
+         
+           const snap = await get(window.dbRef("players"));
+           const data = snap.val() || {};
+         
+           for (const team of ["crveni","plavi"]) {
+             if (!data[team]) continue;
+             for (const id of Object.keys(data[team])) {
+               await update(window.dbRef(`players/${team}/${id}`), {
+                 goals: 0,
+                 matches: 0
+               });
+             }
+           }
+         
+           alert("Statistika resetovana!");
+         };
+      </script>
+      <script>
+         // klik na pozadinu = zatvori modal
+         document.getElementById("modalOverlay").onclick = e => {
+           if (e.target.id === "modalOverlay")
+             e.target.style.display = "none";
+         };
+         document.addEventListener("keydown", e => {
+           if (e.key === "Escape") {
+             document.getElementById("modalOverlay").style.display = "none";
+           }
+         });
+      </script>
+   </body>
+</html>

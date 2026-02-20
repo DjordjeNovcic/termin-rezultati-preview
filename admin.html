@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="sr">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Admin – Mečevi</title>
+      <script type="module" src="firebase.mjs"></script>
+      <style>
+         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+         :root {
+         --admin-bg-a: #eaf5ff;
+         --admin-bg-b: #f4fffb;
+         --admin-brand: #0b66b8;
+         --admin-brand-2: #0ea5a6;
+         --admin-ink: #0f172a;
+         --admin-border: #dce7f5;
+         }
+         * {
+         box-sizing: border-box;
+         margin: 0;
+         padding: 0;
+         }
+         body {
+         font-family: 'Plus Jakarta Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+         background:
+           radial-gradient(1100px 420px at 10% -10%, rgba(11, 102, 184, 0.15), transparent 55%),
+           radial-gradient(900px 360px at 100% 0%, rgba(14, 165, 166, 0.12), transparent 45%),
+           linear-gradient(180deg, var(--admin-bg-a) 0%, var(--admin-bg-b) 100%);
+         min-height: 100vh;
+         padding: 20px 10px;
+         color: var(--admin-ink);
+         }
+         .container {
+         max-width: 800px;
+         margin: 0 auto;
+         }
+         /* HEADER */
+         header {
+         background: white;
+         border-radius: 16px;
+         padding: 20px 30px;
+         margin-bottom: 20px;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         flex-wrap: wrap;
+         gap: 15px;
+         }
+         .logo {
+         font-size: 24px;
+         font-weight: bold;
+         background: linear-gradient(120deg, #0b66b8 0%, #0ea5a6 100%);
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         background-clip: text;
+         }
+         .nav-buttons {
+         display: flex;
+         gap: 10px;
+         }
+         .nav-btn {
+         padding: 10px 20px;
+         border: none;
+         border-radius: 10px;
+         font-size: 14px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         background: #f0f0f0;
+         color: #333;
+         }
+         .nav-btn:hover {
+         background: #e0e0e0;
+         transform: translateY(-2px);
+         }
+         .nav-btn.active {
+         background: linear-gradient(135deg, #0b66b8 0%, #0ea5a6 100%);
+         color: white;
+         box-shadow: 0 8px 20px rgba(11, 102, 184, 0.2);
+         }
+         .nav-btn.logout {
+         background: #ff4757;
+         color: white;
+         }
+         .nav-btn.logout:hover {
+         background: #ee5a6f;
+         }
+         /* MAIN CARD */
+         .card {
+         background: white;
+         border-radius: 16px;
+         padding: 30px;
+         margin-bottom: 20px;
+         box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+         border: 1px solid var(--admin-border);
+         }
+         .card-title {
+         font-size: 22px;
+         font-weight: 700;
+         margin-bottom: 25px;
+         color: #2d3436;
+         text-align: center;
+         }
+         /* FORM STYLING */
+         .form-group {
+         margin-bottom: 20px;
+         }
+         .form-label {
+         display: block;
+         font-size: 13px;
+         font-weight: 600;
+         color: #636e72;
+         margin-bottom: 8px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         }
+         input[readonly] {
+         background: #f8f9fa;
+         cursor: not-allowed;
+         }
+         input, textarea {
+         width: 100%;
+         padding: 14px 16px;
+         border: 2px solid #e0e0e0;
+         border-radius: 10px;
+         font-size: 15px;
+         transition: all 0.3s ease;
+         font-family: inherit;
+         }
+         input:focus, textarea:focus {
+         outline: none;
+         border-color: var(--admin-brand);
+         box-shadow: 0 0 0 4px rgba(11, 102, 184, 0.12);
+         }
+         textarea {
+         min-height: 100px;
+         resize: vertical;
+         }
+         .input-row {
+         display: grid;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+         gap: 15px;
+         }
+         .input-row-3 {
+         display: grid;
+         grid-template-columns: repeat(3, minmax(0, 1fr));
+         gap: 15px;
+         }
+         .form-group {
+         min-width: 0;
+         }
+         input[type="date"],
+         input[type="time"] {
+         min-width: 0;
+         max-width: 100%;
+         }
+         /* SECTION HEADERS */
+         .section-header {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         margin: 30px 0 15px;
+         padding-bottom: 10px;
+         border-bottom: 2px solid #f0f0f0;
+         }
+         .section-icon {
+         width: 32px;
+         height: 32px;
+         border-radius: 8px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 18px;
+         }
+         .section-icon.red {
+         background: #ffe5e5;
+         color: #d63031;
+         }
+         .section-icon.blue {
+         background: #e5f0ff;
+         color: #0984e3;
+         }
+         .section-title {
+         font-size: 18px;
+         font-weight: 700;
+         color: #2d3436;
+         }
+         /* PLAYER BUTTONS */
+         .players-grid {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+         margin-bottom: 20px;
+         }
+         .player-btn {
+         padding: 10px 16px;
+         border: 2px solid #e0e0e0;
+         border-radius: 10px;
+         background: white;
+         cursor: pointer;
+         font-size: 14px;
+         font-weight: 500;
+         transition: all 0.2s ease;
+         user-select: none;
+         }
+         .player-btn:hover {
+         border-color: #b2bec3;
+         transform: translateY(-2px);
+         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+         }
+         .player-btn.active {
+         font-weight: 700;
+         color: white;
+         border: 2px solid transparent;
+         }
+         #playedRed .player-btn.active,
+         #scorersRedPlayers .player-btn.active {
+         background: linear-gradient(135deg, #d63031 0%, #e17055 100%);
+         box-shadow: 0 4px 15px rgba(214, 48, 49, 0.3);
+         }
+         #playedBlue .player-btn.active,
+         #scorersBluePlayers .player-btn.active {
+         background: linear-gradient(135deg, #0984e3 0%, #00b894 100%);
+         box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3);
+         }
+         /* BADGES */
+         .captain-badge {
+         display: inline-block;
+         background: linear-gradient(135deg, #ffd700, #ffed4e);
+         color: #333;
+         font-weight: bold;
+         padding: 2px 6px;
+         border-radius: 4px;
+         margin-left: 6px;
+         font-size: 10px;
+         box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+         }
+         .goalkeeper-badge {
+         margin-left: 6px;
+         font-size: 16px;
+         }
+         /* SCORER TAGS */
+         .scorers-tags {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+         margin-top: 10px;
+         }
+         .tag {
+         background: #f0f0f0;
+         padding: 8px 12px;
+         border-radius: 8px;
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         font-size: 14px;
+         font-weight: 500;
+         }
+         .tag button {
+         width: 22px;
+         height: 22px;
+         border: none;
+         border-radius: 50%;
+         background: #ff4757;
+         color: white;
+         cursor: pointer;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 16px;
+         line-height: 1;
+         transition: all 0.2s ease;
+         }
+         .tag button:hover {
+         background: #ee5a6f;
+         transform: scale(1.1);
+         }
+         /* ACTION BUTTONS */
+         .btn {
+         width: 100%;
+         padding: 16px;
+         border: none;
+         border-radius: 12px;
+         font-size: 16px;
+         font-weight: 700;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         margin-top: 15px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         }
+         .btn-primary {
+         background: linear-gradient(135deg, #0b66b8 0%, #0ea5a6 100%);
+         color: white;
+         box-shadow: 0 8px 20px rgba(11, 102, 184, 0.2);
+         }
+         .btn-primary:hover {
+         box-shadow: 0 10px 24px rgba(11, 102, 184, 0.24);
+         transform: translateY(-2px);
+         }
+         .btn-warning {
+         background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+         color: white;
+         display: none;
+         box-shadow: 0 8px 20px rgba(245, 158, 11, 0.22);
+         }
+         .btn-secondary {
+         background: #636e72;
+         color: white;
+         display: none;
+         }
+         #redOwnGoalBtn,
+         #blueOwnGoalBtn {
+         display: block;
+         }
+         .btn-secondary:hover {
+         background: #4a5558;
+         }
+         /* MATCHES TABLE */
+         .table-wrapper {
+         overflow-x: auto;
+         overflow-y: auto;
+         margin-top: 25px;
+         border-radius: 12px;
+         border: 1px solid var(--admin-border);
+         background: #fff;
+         max-height: 420px;
+         box-shadow: inset 0 0 0 1px rgba(220, 231, 245, 0.45);
+         }
+         .table-wrapper::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         .table-wrapper::-webkit-scrollbar-thumb {
+         background: rgba(11, 102, 184, 0.35);
+         border-radius: 999px;
+         }
+         .table-wrapper::-webkit-scrollbar-track {
+         background: rgba(148, 163, 184, 0.2);
+         border-radius: 999px;
+         }
+         table {
+         width: 100%;
+         border-collapse: collapse;
+         min-width: 600px;
+         }
+         th {
+         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+         padding: 15px 12px;
+         text-align: left;
+         font-size: 13px;
+         font-weight: 700;
+         color: #636e72;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         border-bottom: 2px solid #e0e0e0;
+         position: sticky;
+         top: 0;
+         z-index: 2;
+         }
+         td {
+         padding: 15px 12px;
+         border-bottom: 1px solid #f0f0f0;
+         font-size: 14px;
+         color: #2d3436;
+         }
+         tr:hover {
+         background: #f6fafe;
+         }
+         .table-btn {
+         padding: 8px 14px;
+         border: none;
+         border-radius: 8px;
+         font-size: 12px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.2s ease;
+         margin-right: 6px;
+         }
+         .row-actions {
+         display: inline-flex;
+         align-items: center;
+         justify-content: flex-end;
+         gap: 8px;
+         width: 100%;
+         }
+         .table-btn.edit {
+         background: #0b66b8;
+         color: white;
+         }
+         .table-btn.edit:hover {
+         background: #095ca8;
+         transform: scale(1.05);
+         }
+         .table-btn.delete {
+         background: #ff4757;
+         color: white;
+         }
+         .table-btn.delete:hover {
+         background: #ee5a6f;
+         transform: scale(1.05);
+         }
+         /* MOBILE RESPONSIVE */
+         @media (max-width: 768px) {
+         body {
+         padding: 10px 5px;
+         }
+         .container {
+         max-width: 100%;
+         }
+         header {
+         padding: 15px 20px;
+         border-radius: 12px;
+         flex-direction: column;
+         align-items: stretch;
+         }
+         .logo {
+         text-align: center;
+         font-size: 20px;
+         }
+         .nav-buttons {
+         flex-direction: column;
+         }
+         .nav-btn {
+         width: 100%;
+         text-align: center;
+         }
+         .card {
+         padding: 20px;
+         border-radius: 12px;
+         }
+         .card-title {
+         font-size: 20px;
+         }
+         .input-row {
+         grid-template-columns: 1fr;
+         }
+         .team-title {
+         font-size: 20px;
+         margin: 20px 0 12px;
+         }
+         table {
+         min-width: 450px;
+         }
+         .table-wrapper {
+         max-height: 360px;
+         }
+         th, td {
+         padding: 8px 4px;
+         font-size: 11px;
+         }
+         th {
+         padding: 10px 6px;
+         }
+         .edit-btn, .del-btn {
+         padding: 6px 10px;
+         font-size: 10px;
+         display: block;
+         width: 100%;
+         margin: 2px 0;
+         }
+         #modalBox {
+         padding: 20px;
+         width: 95%;
+         }
+         .modal-buttons {
+         flex-direction: column;
+         }
+         }
+         @media (max-width: 480px) {
+         .card {
+         padding: 15px;
+         }
+         .team-title {
+         font-size: 18px;
+         }
+         table {
+         min-width: 400px;
+         }
+         .table-wrapper {
+         max-height: 320px;
+         }
+         th, td {
+         padding: 6px 2px;
+         font-size: 10px;
+         }
+         th {
+         padding: 8px 4px;
+         }
+         .edit-btn, .del-btn {
+         padding: 5px 8px;
+         font-size: 9px;
+         }
+         .captain-badge {
+         font-size: 8px;
+         padding: 1px 4px;
+         }
+         .goalkeeper-badge {
+         font-size: 14px;
+         }
+         }
+         @media (max-width: 640px) {
+         .table-wrapper table,
+         .table-wrapper thead,
+         .table-wrapper tbody,
+         .table-wrapper tr,
+         .table-wrapper th,
+         .table-wrapper td {
+         display: block;
+         width: 100%;
+         }
+         .table-wrapper thead {
+         display: none;
+         }
+         .table-wrapper tr {
+         border: 1px solid #eceff1;
+         border-radius: 10px;
+         padding: 10px;
+         margin-bottom: 10px;
+         background: #fff;
+         }
+         .table-wrapper td {
+         border: none;
+         padding: 6px 4px;
+         text-align: left;
+         }
+         .table-wrapper td[data-label]::before {
+         content: attr(data-label) ": ";
+         font-weight: 700;
+         color: #636e72;
+         }
+         .table-wrapper td:last-child {
+         display: flex;
+         gap: 8px;
+         }
+         .table-wrapper td:last-child .table-btn {
+         flex: 1;
+         }
+         }
+         a:focus-visible,
+         button:focus-visible,
+         input:focus-visible,
+         textarea:focus-visible {
+         outline: 3px solid var(--admin-brand);
+         outline-offset: 2px;
+         }
+         @media (prefers-reduced-motion: reduce) {
+         * {
+         animation: none !important;
+         transition: none !important;
+         scroll-behavior: auto !important;
+         }
+         }
+         /* === Redesign V2 === */
+         .container {
+         max-width: 940px;
+         }
+         header {
+         border-radius: 20px;
+         border: 1px solid rgba(214, 227, 242, 0.95);
+         box-shadow: 0 20px 46px rgba(15, 23, 42, 0.14);
+         }
+         .logo {
+         letter-spacing: -0.02em;
+         }
+         .nav-btn {
+         min-height: 42px;
+         border-radius: 12px;
+         }
+         .card {
+         border-radius: 20px;
+         box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+         }
+         .card-title {
+         letter-spacing: -0.02em;
+         }
+         .section-header {
+         margin-top: 24px;
+         }
+         input, textarea {
+         border-radius: 12px;
+         }
+         .btn {
+         border-radius: 12px;
+         min-height: 46px;
+         }
+         .players-grid {
+         gap: 10px;
+         }
+         .player-btn {
+         border-radius: 12px;
+         }
+         .table-wrapper {
+         border-radius: 14px;
+         box-shadow: inset 0 0 0 1px rgba(220, 231, 245, 0.7), 0 10px 28px rgba(15, 23, 42, 0.08);
+         }
+         th {
+         font-size: 11px;
+         letter-spacing: 0.04em;
+         }
+         td {
+         font-size: 14px;
+         }
+         .tag {
+         border-radius: 10px;
+         }
+         .tag button {
+         border-radius: 999px;
+         }
+         .table-btn {
+         min-height: 34px;
+         min-width: 84px;
+         margin-right: 0;
+         border-radius: 10px;
+         font-weight: 700;
+         }
+         .table-btn.edit {
+         background: linear-gradient(135deg, #0b66b8 0%, #0f7fd8 100%);
+         box-shadow: 0 6px 14px rgba(11, 102, 184, 0.22);
+         }
+         .table-btn.delete {
+         background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+         box-shadow: 0 6px 14px rgba(225, 29, 72, 0.2);
+         }
+         .table-btn:hover {
+         transform: translateY(-1px);
+         }
+         #modalBox {
+         border-radius: 18px;
+         box-shadow: 0 26px 70px rgba(2, 6, 23, 0.35);
+         }
+         .modal-buttons .btn {
+         margin-top: 0;
+         }
+         @media (max-width: 768px) {
+         header,
+         .card {
+         border-radius: 16px;
+         }
+         .card {
+         padding: 22px 16px;
+         }
+         .nav-buttons {
+         width: 100%;
+         display: grid;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+         gap: 8px;
+         padding: 8px;
+         border-radius: 14px;
+         background: #f5f9ff;
+         border: 1px solid #d9e7f8;
+         }
+         .nav-btn {
+         width: 100%;
+         min-height: 40px;
+         padding: 10px 12px;
+         font-size: 13px;
+         border-radius: 10px;
+         margin: 0;
+         }
+         .nav-btn.logout {
+         grid-column: 1 / -1;
+         }
+         .input-row,
+         .input-row-3 {
+         grid-template-columns: minmax(0, 1fr);
+         }
+         input[type="date"],
+         input[type="time"] {
+         width: 100%;
+         min-width: 0;
+         font-size: 16px;
+         padding-right: 12px;
+         }
+         table {
+         min-width: 680px;
+         }
+         th, td {
+         font-size: 12px;
+         padding: 10px 8px;
+         }
+         td[data-label="Termin"] {
+         white-space: nowrap;
+         }
+         .row-actions {
+         flex-wrap: nowrap;
+         justify-content: flex-start;
+         }
+         .table-btn {
+         min-width: 78px;
+         padding: 7px 10px;
+         font-size: 11px;
+         }
+         }
+         @media (max-width: 480px) {
+         .nav-buttons {
+         grid-template-columns: minmax(0, 1fr);
+         }
+         .nav-btn.logout {
+         grid-column: auto;
+         }
+         table {
+         min-width: 640px;
+         }
+         th, td {
+         font-size: 12px;
+         padding: 10px 8px;
+         }
+         }
+         @media (max-width: 640px) {
+         .table-wrapper table {
+         display: table;
+         width: 100%;
+         min-width: 640px;
+         }
+         .table-wrapper thead {
+         display: table-header-group;
+         }
+         .table-wrapper tbody {
+         display: table-row-group;
+         }
+         .table-wrapper tr {
+         display: table-row;
+         }
+         .table-wrapper th,
+         .table-wrapper td {
+         display: table-cell;
+         width: auto;
+         }
+         .table-wrapper td[data-label]::before {
+         content: none;
+         }
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <!-- HEADER -->
+         <header>
+            <div class="logo">⚽ Admin Panel</div>
+            <div class="nav-buttons">
+               <button class="nav-btn active" onclick="window.location.href='admin.html'">Mečevi</button>
+               <button class="nav-btn" onclick="window.location.href='admin-igraci.html'">Igrači</button>
+               <button class="nav-btn logout" onclick="logout()">Logout</button>
+            </div>
+         </header>
+         <script type="module">
+            /* 🔒 ADMIN GUARD */
+            window.onAuth(user => {
+              if (!user) {
+                window.location.href = "login.html";
+              }
+            });
+            
+            /* LOGOUT */
+            window.logout = function () {
+              window.logoutAdmin().then(() => {
+                window.location.href = "index.html";
+              });
+            };
+         </script>
+         <!-- MAIN FORM CARD -->
+         <div class="card">
+            <h1 class="card-title">Upravljanje mečevima</h1>
+            <div class="form-group">
+               <label class="form-label">Kolo</label>
+               <input id="round" type="number" placeholder="Unesite broj kola">
+            </div>
+            <div class="input-row">
+               <div class="form-group">
+                  <label class="form-label">Datum</label>
+                  <input id="date" type="date">
+               </div>
+               <div class="form-group">
+                  <label class="form-label">Vreme</label>
+                  <input id="time" type="time">
+               </div>
+            </div>
+            <div class="input-row">
+               <div class="form-group">
+                  <label class="form-label">Golovi Crveni</label>
+                  <input id="red" type="number" placeholder="0" readonly>
+               </div>
+               <div class="form-group">
+                  <label class="form-label">Golovi Plavi</label>
+                  <input id="blue" type="number" placeholder="0" readonly>
+               </div>
+            </div>
+            <div class="form-group">
+               <label class="form-label">Info o meču</label>
+               <textarea id="info" placeholder="Dodajte dodatne informacije o meču..."></textarea>
+            </div>
+            <!-- IGRALI CRVENI -->
+            <div class="section-header">
+               <div class="section-icon red">👥</div>
+               <div class="section-title">Igrali – Crveni</div>
+            </div>
+            <div class="players-grid" id="playedRed"></div>
+            <!-- STRELCI CRVENI -->
+            <div class="section-header">
+               <div class="section-icon red">⚽</div>
+               <div class="section-title">Strelci – Crveni</div>
+            </div>
+            <div class="players-grid" id="scorersRedPlayers"></div>
+            <div class="scorers-tags" id="scorersRedTags"></div>
+            <button type="button" class="btn btn-secondary" id="redOwnGoalBtn">
+            Autogol – Crveni
+            </button>
+            <!-- IGRALI PLAVI -->
+            <div class="section-header">
+               <div class="section-icon blue">👥</div>
+               <div class="section-title">Igrali – Plavi</div>
+            </div>
+            <div class="players-grid" id="playedBlue"></div>
+            <!-- STRELCI PLAVI -->
+            <div class="section-header">
+               <div class="section-icon blue">⚽</div>
+               <div class="section-title">Strelci – Plavi</div>
+            </div>
+            <div class="players-grid" id="scorersBluePlayers"></div>
+            <div class="scorers-tags" id="scorersBlueTags"></div>
+            <button type="button" class="btn btn-secondary" id="blueOwnGoalBtn">
+            Autogol – Plavi
+            </button>
+            <!-- ACTION BUTTONS -->
+            <button class="btn btn-primary" id="saveBtn">Sačuvaj meč</button>
+            <button class="btn btn-warning" id="updateBtn">Sačuvaj izmene</button>
+            <button class="btn btn-secondary" id="cancelBtn" onclick="clearForm()">Otkaži izmenu</button>
+         </div>
+         <!-- MATCHES LIST CARD -->
+         <div class="card">
+            <h2 class="card-title">Lista mečeva</h2>
+            <div class="table-wrapper">
+               <table>
+                  <thead>
+                     <tr>
+                        <th>Kolo</th>
+                        <th>Rezultat</th>
+                        <th>Datum</th>
+                        <th>Akcije</th>
+                     </tr>
+                  </thead>
+                  <tbody id="matchList"></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+      <!-- SCRIPT -->
+      <script type="module">
+         import { onValue, push, update, remove, get }
+           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+         
+         let players = { crveni:{}, plavi:{} };
+         let scorers = [];
+         let editingId = null;
+         let pendingPlayed = null;
+         
+         
+         function escapeHtml(value) {
+           return String(value ?? "").replace(/[&<>"']/g, char => ({
+             "&": "&amp;",
+             "<": "&lt;",
+             ">": "&gt;",
+             '"': "&quot;",
+             "'": "&#39;"
+           }[char]));
+         }
+         
+         /* FORMAT PLAYER NAME */
+         function formatPlayerName(name) {
+           if (!name) return '';
+           let displayName = name;
+           let badges = '';
+         
+           const captainRegex = /\s*\(c\)\s*/i;
+           if (captainRegex.test(name)) {
+             displayName = name.replace(captainRegex, ' ').trim();
+             badges += '<span class="captain-badge">C</span>';
+           }
+         
+           const goalkeeperRegex = /\s*\(g\)\s*/i;
+           if (goalkeeperRegex.test(name)) {
+             displayName = name.replace(goalkeeperRegex, ' ').trim();
+             badges += '<span class="goalkeeper-badge">🧤</span>';
+           }
+         
+           return escapeHtml(displayName) + badges;
+         }
+         
+         /* LOAD PLAYERS */
+         onValue(window.dbRef("players"), snap => {
+           players = snap.val() || { crveni:{}, plavi:{} };
+           renderPlayers();
+           if (pendingPlayed) applyPlayedSelection(pendingPlayed);
+         });
+         
+         /* RENDER PLAYERS */
+         function renderPlayers() {
+           const PR = document.getElementById("playedRed");
+           const PB = document.getElementById("playedBlue");
+           const SRP = document.getElementById("scorersRedPlayers");
+           const SBP = document.getElementById("scorersBluePlayers");
+         
+           PR.innerHTML = PB.innerHTML = SRP.innerHTML = SBP.innerHTML = "";
+         
+           Object.entries(players.crveni).forEach(([id, p]) => {
+             PR.innerHTML  += `<div class="player-btn" data-id="${id}" data-team="crveni">${formatPlayerName(p.name)}</div>`;
+             SRP.innerHTML += `<div class="player-btn" data-id="${id}" data-team="crveni">${formatPlayerName(p.name)}</div>`;
+           });
+         
+           Object.entries(players.plavi).forEach(([id, p]) => {
+             PB.innerHTML  += `<div class="player-btn" data-id="${id}" data-team="plavi">${formatPlayerName(p.name)}</div>`;
+             SBP.innerHTML += `<div class="player-btn" data-id="${id}" data-team="plavi">${formatPlayerName(p.name)}</div>`;
+           });
+         
+           if (pendingPlayed) applyPlayedSelection(pendingPlayed);
+         }
+         
+         /* APPLY PLAYED SELECTION */
+         function applyPlayedSelection(played) {
+           document.querySelectorAll("#playedRed .player-btn, #playedBlue .player-btn")
+             .forEach(b => b.classList.remove("active"));
+         
+           Object.entries(played || {}).forEach(([playerId, team]) => {
+             const container = team === "crveni" ? "#playedRed" : "#playedBlue";
+             const btn = document.querySelector(`${container} .player-btn[data-id="${playerId}"]`);
+             if (btn) btn.classList.add("active");
+           });
+         }
+         
+         /* EVENT DELEGATION */
+         (function setupEventDelegation() {
+           document.getElementById("playedRed").addEventListener("click", (e) => {
+             if (e.target.classList.contains("player-btn")) {
+               e.target.classList.toggle("active");
+               pendingPlayed = getPlayed();
+             }
+           });
+         
+           document.getElementById("playedBlue").addEventListener("click", (e) => {
+             if (e.target.classList.contains("player-btn")) {
+               e.target.classList.toggle("active");
+               pendingPlayed = getPlayed();
+             }
+           });
+            })();
+         
+         document.getElementById("scorersRedPlayers").addEventListener("click", (e) => {
+         if (e.target.classList.contains("player-btn")) {
+         scorers.push({
+         id: e.target.dataset.id,
+         team: e.target.dataset.team,
+         type: "goal"
+         });
+         
+         refreshTags();
+         autoSetGoals();
+         }
+         });
+         
+           document.getElementById("scorersBluePlayers").addEventListener("click", (e) => {
+         if (e.target.classList.contains("player-btn")) {
+         scorers.push({
+         id: e.target.dataset.id,
+         team: e.target.dataset.team,
+         type: "goal"
+         });
+         
+         refreshTags();
+         autoSetGoals();
+         }
+         });
+         
+         
+         /* REFRESH TAGS */
+         function refreshTags(){
+           document.getElementById("scorersRedTags").innerHTML = "";
+           document.getElementById("scorersBlueTags").innerHTML = "";
+         
+           scorers.forEach((s,i)=>{
+             const rawName =
+         s.type === "own_goal"
+         ? "Autogol"
+         : players[s.team][s.id]?.name || "(obrisan)";
+         
+         const name = rawName
+         .replace(/\s*\(c\)\s*/gi, '')
+         .replace(/\s*\(g\)\s*/gi, '')
+         .trim();
+         
+         const ogLabel = s.type === "own_goal" ? " (OG)" : "";
+         
+         const tag = `<div class="tag">${escapeHtml(name)}${ogLabel}<button type="button" data-remove-index="${i}">×</button></div>`;
+         
+             if (s.team==="crveni")
+               document.getElementById("scorersRedTags").innerHTML += tag;
+             else
+               document.getElementById("scorersBlueTags").innerHTML += tag;
+           });
+         
+           autoSetGoals();
+         }
+         
+         function removeGoalByIndex(i) {
+           scorers.splice(i,1);
+           refreshTags();
+         }
+         
+         document.getElementById("scorersRedTags").addEventListener("click", e => {
+           const button = e.target.closest("button[data-remove-index]");
+           if (!button) return;
+           removeGoalByIndex(Number(button.dataset.removeIndex));
+         });
+         
+         document.getElementById("scorersBlueTags").addEventListener("click", e => {
+           const button = e.target.closest("button[data-remove-index]");
+           if (!button) return;
+           removeGoalByIndex(Number(button.dataset.removeIndex));
+         });
+         
+         function autoSetGoals() {
+         let redGoals = 0;
+         let blueGoals = 0;
+         
+         scorers.forEach(s => {
+         const type = s.type || "goal";
+         
+         if (type === "own_goal") {
+         if (s.team === "crveni") blueGoals++;
+         if (s.team === "plavi") redGoals++;
+         } else {
+         if (s.team === "crveni") redGoals++;
+         if (s.team === "plavi") blueGoals++;
+         }
+         });
+         
+         
+         red.value = redGoals;
+         blue.value = blueGoals;
+         }
+         
+         function addOwnGoal(team) {
+         scorers.push({
+         id: "__own_goal__",
+         team: team,
+         type: "own_goal"
+         });
+         
+         refreshTags();
+         autoSetGoals();
+         }
+         
+         
+         
+         /* GET PLAYED */
+         function getPlayed() {
+           const played = {};
+           document.querySelectorAll("#playedRed .active,#playedBlue .active")
+             .forEach(btn => played[btn.dataset.id] = btn.dataset.team);
+           return played;
+         }
+         
+         /* VALIDATE */
+         function validate(){
+           const e=[];
+           if(!round.value) e.push("Kolo?");
+           if(!date.value)  e.push("Datum?");
+           if(!time.value)  e.push("Vreme?");
+           if(!info.value.trim()) e.push("Info?");
+           if(Object.keys(getPlayed()).length===0) e.push("Igrali?");
+            
+           if (scorers.length === 0 && (+red.value > 0 || +blue.value > 0)) {
+         e.push("Nedostaju strelci");
+         }
+         
+           if(e.length){
+             alert("Greške:\n\n"+e.join("\n"));
+             return false;
+           }
+           return true;
+         }
+         
+         /* UPDATE STATS */
+         async function updateOne(team,id,field,delta){
+           const ref = window.dbRef(`players/${team}/${id}`);
+           const snap = await get(ref);
+           if (!snap.exists()) return;
+         
+           const p = snap.val();
+           const next = Math.max(0, (p[field]||0) + delta);
+           await update(ref, { [field]: next });
+         }
+         
+         async function applyStats(match, dir) {
+           const played = Object.entries(match.played || {});
+           const scor = match.scorers || [];
+         
+           for (const [id, team] of played) {
+             await updateOne(team, id, "matches", dir);
+           }
+         
+           for (const s of scor) {
+         if (s.type && s.type === "own_goal") continue;
+         
+         await updateOne(s.team, s.id, "goals", dir);
+         }
+         }
+         
+         /* SAVE MATCH */
+         saveBtn.onclick = async () =>{
+           if(!validate()) return;
+         
+           const match = {
+             round:round.value,
+             date:date.value,
+             time:time.value,
+             red:+red.value,
+             blue:+blue.value,
+             info:info.value.trim(),
+             played:getPlayed(),
+             scorers: JSON.parse(JSON.stringify(scorers)),
+             timestamp:Date.now()
+           };
+         
+           await push(window.dbRef("matches"), match);
+           await applyStats(match, +1);
+           clearForm();
+         };
+         
+         /* UPDATE MATCH */
+         updateBtn.onclick = async () => {
+           if(!validate()) return;
+         
+           const oldSnap = await get(window.dbRef(`matches/${editingId}`));
+           const oldMatch = oldSnap.val();
+           await applyStats(oldMatch, -1);
+         
+           const newMatch = {
+             round:round.value,
+             date:date.value,
+             time:time.value,
+             red:+red.value,
+             blue:+blue.value,
+             info:info.value.trim(),
+             played:getPlayed(),
+             scorers: JSON.parse(JSON.stringify(scorers)),
+             timestamp: oldMatch.timestamp
+           };
+         
+           await update(window.dbRef(`matches/${editingId}`), newMatch);
+           await applyStats(newMatch, +1);
+           clearForm();
+         };
+         
+         /* DELETE MATCH */
+         window.deleteMatch = async id => {
+           if (!confirm("Obrisati meč?")) return;
+         
+           const snap = await get(window.dbRef(`matches/${id}`));
+           await applyStats(snap.val(), -1);
+           await remove(window.dbRef(`matches/${id}`));
+         };
+         
+         /* FORMAT DATE */
+         function formatDateForInput(date) {
+           const year = date.getFullYear();
+           const month = String(date.getMonth() + 1).padStart(2, '0');
+           const day = String(date.getDate()).padStart(2, '0');
+           return `${year}-${month}-${day}`;
+         }
+         
+         /* CLEAR FORM */
+         window.clearForm = function(){
+           editingId = null;
+           scorers = [];
+           pendingPlayed = null;
+         
+           round.value = "";
+           red.value = "";
+           blue.value = "";
+           info.value = "";
+           autoFillRound();
+         
+           document.querySelectorAll(".player-btn.active").forEach(b => b.classList.remove("active"));
+           refreshTags();
+         
+           const d = getNextThursday();
+           date.value = formatDateForInput(d);
+           time.value = "18:00";
+         
+           saveBtn.style.display = "block";
+           updateBtn.style.display = "none";
+           cancelBtn.style.display = "none";
+         };
+         
+         /* LIST MATCHES */
+         onValue(window.dbRef("matches"), snap=>{
+           const tbody=document.getElementById("matchList");
+           tbody.innerHTML="";
+         
+           Object.entries(snap.val()||{})
+             .sort((a,b)=>b[1].timestamp-a[1].timestamp)
+             .forEach(([id,m])=>{
+               tbody.innerHTML+=`
+                 <tr>
+                   <td data-label="Kolo"><strong>${escapeHtml(m.round)}</strong></td>
+                   <td data-label="Rezultat">Crveni <strong>${escapeHtml(m.red)}</strong> - <strong>${escapeHtml(m.blue)}</strong> Plavi</td>
+                   <td data-label="Termin">${escapeHtml(m.date)} ${escapeHtml(m.time)}</td>
+                  <td data-label="Akcije">
+                    <div class="row-actions">
+                      <button type="button" class="table-btn edit" data-action="edit" data-id="${id}">Izmeni</button>
+                      <button type="button" class="table-btn delete" data-action="delete" data-id="${id}">Obriši</button>
+                    </div>
+                  </td>
+                </tr>`;
+             });
+         });
+         
+         document.getElementById("matchList").addEventListener("click", e => {
+           const button = e.target.closest("button[data-action][data-id]");
+           if (!button) return;
+           const id = button.dataset.id;
+           if (button.dataset.action === "edit") {
+             window.editMatch(id);
+             return;
+           }
+           if (button.dataset.action === "delete") {
+             window.deleteMatch(id);
+           }
+         });
+         
+         /* EDIT MATCH */
+         window.editMatch = async matchId => {
+           editingId = matchId;
+         
+           const snap = await get(window.dbRef(`matches/${matchId}`));
+           const m = snap.val();
+         
+           round.value = m.round;
+           date.value = m.date;
+           time.value = m.time;
+           red.value = m.red;
+           blue.value = m.blue;
+           info.value = m.info;
+         
+           scorers = [...m.scorers];
+           refreshTags();
+         
+           pendingPlayed = m.played || {};
+           applyPlayedSelection(pendingPlayed);
+         
+           saveBtn.style.display = "none";
+           updateBtn.style.display = "block";
+           cancelBtn.style.display = "block";
+         
+           window.scrollTo({ top: 0, behavior: 'smooth' });
+         };
+         
+         /* AUTO THURSDAY */
+         function getNextThursday() {
+           const now = new Date();
+           let diff = (4 - now.getDay() + 7) % 7;
+           if (diff === 0) diff = 7;
+           const d = new Date();
+           d.setDate(now.getDate() + diff);
+           return d;
+         }
+         
+         (function(){
+           const d = getNextThursday();
+           date.value = formatDateForInput(d);
+           time.value = "18:00";
+           autoFillRound();
+         })();
+         
+         /* AUTO ROUND */
+         function autoFillRound() {
+           onValue(window.dbRef("matches"), snap => {
+             const data = snap.val() || {};
+             const rounds = Object.values(data).map(m => Number(m.round) || 0);
+             const nextRound = (rounds.length ? Math.max(...rounds) + 1 : 1);
+             round.value = nextRound;
+           }, { onlyOnce: true });
+         }
+         
+         redOwnGoalBtn.addEventListener("click", () => {
+         addOwnGoal("crveni");
+         });
+         
+         blueOwnGoalBtn.addEventListener("click", () => {
+         addOwnGoal("plavi");
+         });
+         
+         
+      </script>
+   </body>
+</html>
