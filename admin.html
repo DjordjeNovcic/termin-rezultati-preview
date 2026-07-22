@@ -1496,15 +1496,19 @@
              const count = oldResponses ? Object.keys(oldResponses).length : 0;
 
              if (count > 0) {
-               if (!confirm(`Menjaš datum termina sa ${oldDate} na ${newDate}. Postojećih odgovora (${count}) će biti prebačeno na novi datum, umesto da se izgube. Nastaviti?`)) {
-                 return;
+               const shouldMove = confirm(
+                 `Menjaš datum sa ${oldDate} na ${newDate}. Za ${oldDate} postoji ${count} odgovora.\n\n` +
+                 `U REDU = ovo je ISPRAVKA GREŠKE u kucanju (isti termin) → prebaci te odgovore na ${newDate}.\n\n` +
+                 `OTKAŽI = ovo je NOVI termin (prošla anketa je gotova) → ostavi te odgovore kao istoriju za ${oldDate} i počni praznu anketu za ${newDate}.`
+               );
+               if (shouldMove) {
+                 const movePatch = {};
+                 for (const [playerId, resp] of Object.entries(oldResponses)) {
+                   movePatch[`${newDate}/${playerId}`] = resp;
+                 }
+                 await update(window.dbRef("attendance"), movePatch);
+                 await remove(window.dbRef("attendance/" + oldDate));
                }
-               const movePatch = {};
-               for (const [playerId, resp] of Object.entries(oldResponses)) {
-                 movePatch[`${newDate}/${playerId}`] = resp;
-               }
-               await update(window.dbRef("attendance"), movePatch);
-               await remove(window.dbRef("attendance/" + oldDate));
              }
            }
 
