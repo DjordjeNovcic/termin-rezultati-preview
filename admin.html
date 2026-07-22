@@ -1486,12 +1486,31 @@
              return;
            }
 
-           await set(window.dbRef("nextTermin"), {
-             date: terminDateInput.value,
-             time: terminTimeInput.value
-           });
+           const newDate = terminDateInput.value;
+           const newTime = terminTimeInput.value;
+           const oldDate = currentTerminDate;
 
-           alert("Termin sačuvan! Anketa je sada otvorena za taj datum.");
+           if (oldDate && oldDate !== newDate) {
+             const oldSnap = await get(window.dbRef("attendance/" + oldDate));
+             const oldResponses = oldSnap.val();
+             const count = oldResponses ? Object.keys(oldResponses).length : 0;
+
+             if (count > 0) {
+               if (!confirm(`Menjaš datum termina sa ${oldDate} na ${newDate}. Postojećih odgovora (${count}) će biti prebačeno na novi datum, umesto da se izgube. Nastaviti?`)) {
+                 return;
+               }
+               const movePatch = {};
+               for (const [playerId, resp] of Object.entries(oldResponses)) {
+                 movePatch[`${newDate}/${playerId}`] = resp;
+               }
+               await update(window.dbRef("attendance"), movePatch);
+               await remove(window.dbRef("attendance/" + oldDate));
+             }
+           }
+
+           await set(window.dbRef("nextTermin"), { date: newDate, time: newTime });
+
+           alert("Termin sačuvan!");
          };
 
          document.getElementById("resetTerminBtn").onclick = async () => {
