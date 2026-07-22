@@ -76,6 +76,7 @@
          gap: 12px;
          align-items: center;
          justify-content: center;
+         flex-wrap: wrap;
          }
          .header-actions {
          margin-top: 14px;
@@ -208,6 +209,17 @@
          color: white;
          transform: translateY(-2px);
          box-shadow: 0 4px 12px rgba(9, 132, 227, 0.3);
+         }
+         .team-link.green {
+         background: linear-gradient(135deg, #d9f7e8 0%, #c3f0dc 100%);
+         color: #0f9d58;
+         border: 2px solid #0f9d58;
+         }
+         .team-link.green:hover {
+         background: #0f9d58;
+         color: white;
+         transform: translateY(-2px);
+         box-shadow: 0 4px 12px rgba(15, 157, 88, 0.3);
          }
          #loginBtn {
          padding: 12px 24px;
@@ -1859,6 +1871,15 @@
          color: #9ad4ff;
          border-color: #355276;
          }
+         body.theme-dark .team-link.green {
+         background: #123024;
+         border-color: #1f7a53;
+         color: #6be3ab;
+         }
+         body.theme-dark .team-link.green:hover {
+         background: #0f9d58;
+         color: #fff;
+         }
          body.theme-dark .info-link:hover,
          body.theme-dark .quick-pill:hover {
          background: #1178c8;
@@ -1938,6 +1959,7 @@
             <div class="header-nav">
                <a href="crveni.html" class="team-link red">🔴 Vidi ekipu – Crveni</a>
                <a href="plavi.html" class="team-link blue">🔵 Vidi ekipu – Plavi</a>
+               <a href="prijave.html" class="team-link green">📋 Prijava za termin</a>
             </div>
             <div class="header-actions">
                <button id="themeToggle" type="button" aria-label="Promeni temu">🌙 Dark</button>

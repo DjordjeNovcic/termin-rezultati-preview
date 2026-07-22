@@ -801,6 +801,23 @@
               });
             };
          </script>
+         <!-- SLEDEĆI TERMIN / ANKETA DOLAZAKA -->
+         <div class="card">
+            <h1 class="card-title">Sledeći termin – anketa dolazaka</h1>
+            <div class="input-row date-time-row">
+               <div class="form-group">
+                  <label class="form-label">Datum termina</label>
+                  <input id="terminDate" type="date">
+               </div>
+               <div class="form-group">
+                  <label class="form-label">Vreme</label>
+                  <input id="terminTime" type="time">
+               </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="saveTerminBtn">Sačuvaj termin</button>
+            <div id="terminSummary" style="margin-top: 10px;"></div>
+            <button type="button" class="btn" style="background:#636e72;color:#fff;" id="resetTerminBtn">Resetuj odgovore za ovaj termin</button>
+         </div>
          <!-- MAIN FORM CARD -->
          <div class="card">
             <h1 class="card-title">Upravljanje mečevima</h1>
@@ -891,7 +908,7 @@
       </div>
       <!-- SCRIPT -->
       <script type="module">
-         import { onValue, push, update, remove, get }
+         import { onValue, push, update, remove, get, set }
            from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
          
          let players = { crveni:{}, plavi:{} };
@@ -936,6 +953,7 @@
            players = snap.val() || { crveni:{}, plavi:{} };
            renderPlayers();
            if (pendingPlayed) applyPlayedSelection(pendingPlayed);
+           renderTerminSummary();
          });
          
          /* RENDER PLAYERS */
@@ -1330,12 +1348,124 @@
          redOwnGoalBtn.addEventListener("click", () => {
          addOwnGoal("crveni");
          });
-         
+
          blueOwnGoalBtn.addEventListener("click", () => {
          addOwnGoal("plavi");
          });
-         
-         
+
+         /* ------------------ SLEDEĆI TERMIN / ANKETA DOLAZAKA ------------------ */
+         let currentTerminDate = null;
+         let attendanceData = {};
+         let unsubAttendance = null;
+
+         function subscribeAttendance(dateKey) {
+           if (unsubAttendance) {
+             unsubAttendance();
+             unsubAttendance = null;
+           }
+           attendanceData = {};
+           if (!dateKey) {
+             renderTerminSummary();
+             return;
+           }
+           unsubAttendance = onValue(window.dbRef("attendance/" + dateKey), snap => {
+             attendanceData = snap.val() || {};
+             renderTerminSummary();
+           });
+         }
+
+         function renderTerminSummary() {
+           const box = document.getElementById("terminSummary");
+           if (!box) return;
+
+           if (!currentTerminDate) {
+             box.innerHTML = `<p style="text-align:center;color:#636e72;margin-top:10px;">Sačuvaj termin da bi se prikazala anketa dolazaka.</p>`;
+             return;
+           }
+
+           const allPlayers = [];
+           ["crveni", "plavi"].forEach(team => {
+             Object.entries(players[team] || {}).forEach(([id, p]) => {
+               allPlayers.push({ id, team, name: p.name || "" });
+             });
+           });
+
+           const yes = [];
+           const no = [];
+           const pending = [];
+
+           allPlayers.forEach(p => {
+             const resp = attendanceData[p.id];
+             if (resp?.status === "yes") yes.push(p);
+             else if (resp?.status === "no") no.push(p);
+             else pending.push(p);
+           });
+
+           const tagList = arr => arr.length
+             ? `<div class="scorers-tags">${arr.map(p => `<div class="tag">${formatPlayerName(p.name)}</div>`).join("")}</div>`
+             : `<p style="color:#b2bec3;font-size:13px;margin:6px 0 0;">Nema.</p>`;
+
+           box.innerHTML = `
+             <div class="section-header">
+               <div class="section-icon red">✅</div>
+               <div class="section-title">Dolaze (${yes.length})</div>
+             </div>
+             ${tagList(yes)}
+             <div class="section-header">
+               <div class="section-icon red">❌</div>
+               <div class="section-title">Ne dolaze (${no.length})</div>
+             </div>
+             ${tagList(no)}
+             <div class="section-header">
+               <div class="section-icon blue">⏳</div>
+               <div class="section-title">Čeka odgovor (${pending.length})</div>
+             </div>
+             ${tagList(pending)}
+           `;
+         }
+
+         onValue(window.dbRef("nextTermin"), snap => {
+           const t = snap.val();
+           const terminDateInput = document.getElementById("terminDate");
+           const terminTimeInput = document.getElementById("terminTime");
+
+           if (t && t.date) {
+             terminDateInput.value = t.date;
+             terminTimeInput.value = t.time || "18:00";
+             currentTerminDate = t.date;
+           } else {
+             const d = getNextThursday();
+             terminDateInput.value = formatDateForInput(d);
+             terminTimeInput.value = "18:00";
+             currentTerminDate = null;
+           }
+
+           subscribeAttendance(currentTerminDate);
+         });
+
+         document.getElementById("saveTerminBtn").onclick = async () => {
+           const terminDateInput = document.getElementById("terminDate");
+           const terminTimeInput = document.getElementById("terminTime");
+
+           if (!terminDateInput.value || !terminTimeInput.value) {
+             alert("Unesi datum i vreme termina.");
+             return;
+           }
+
+           await set(window.dbRef("nextTermin"), {
+             date: terminDateInput.value,
+             time: terminTimeInput.value
+           });
+
+           alert("Termin sačuvan! Anketa je sada otvorena za taj datum.");
+         };
+
+         document.getElementById("resetTerminBtn").onclick = async () => {
+           if (!currentTerminDate) return;
+           if (!confirm("Obrisati sve odgovore (dolazim/ne dolazim) za ovaj termin?")) return;
+           await remove(window.dbRef("attendance/" + currentTerminDate));
+         };
+
       </script>
    </body>
 </html>

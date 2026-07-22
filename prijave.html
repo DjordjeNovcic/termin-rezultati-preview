@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="sr">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+      <title>Prijava za termin</title>
+      <script type="module" src="firebase.mjs"></script>
+      <style>
+         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+         :root {
+         --bg-a: #ecf6ff;
+         --bg-b: #f5fffb;
+         --ink: #0f172a;
+         --muted: #5b667a;
+         --brand: #1178c8;
+         --brand-2: #0ea5a6;
+         --card-border: #dce7f5;
+         --ring: rgba(17, 120, 200, 0.16);
+         }
+         * {
+         box-sizing: border-box;
+         margin: 0;
+         padding: 0;
+         }
+         body {
+         font-family: 'Plus Jakarta Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+         background:
+           radial-gradient(1200px 420px at 10% -10%, rgba(17, 120, 200, 0.15), transparent 55%),
+           radial-gradient(1000px 360px at 100% 0%, rgba(14, 165, 166, 0.12), transparent 45%),
+           linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 100%);
+         min-height: 100vh;
+         padding: 30px 15px;
+         color: var(--ink);
+         }
+         .container {
+         max-width: 720px;
+         margin: 0 auto;
+         }
+         header {
+         background: white;
+         border-radius: 22px;
+         padding: 25px 30px;
+         margin-bottom: 22px;
+         box-shadow: 0 20px 46px rgba(15, 23, 42, 0.12);
+         border: 1px solid var(--card-border);
+         text-align: center;
+         }
+         .back-link {
+         display: inline-block;
+         font-size: 13px;
+         font-weight: 700;
+         color: var(--brand);
+         text-decoration: none;
+         margin-bottom: 12px;
+         }
+         .back-link:hover { text-decoration: underline; }
+         .logo {
+         font-size: 26px;
+         font-weight: 800;
+         background: linear-gradient(120deg, #0b66b8 0%, #0ea5a6 100%);
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         background-clip: text;
+         margin-bottom: 8px;
+         }
+         .hero-subtitle {
+         font-size: 13.5px;
+         color: var(--muted);
+         }
+         #themeToggle {
+         border: 1px solid rgba(11, 102, 184, 0.24);
+         background: #eff7ff;
+         color: #0b66b8;
+         border-radius: 12px;
+         min-height: 36px;
+         padding: 7px 14px;
+         font-size: 12px;
+         font-weight: 800;
+         letter-spacing: 0.03em;
+         cursor: pointer;
+         margin-top: 14px;
+         transition: all 0.2s ease;
+         }
+         #themeToggle:hover {
+         background: #0b66b8;
+         color: #fff;
+         }
+         .card {
+         background: white;
+         border-radius: 22px;
+         padding: 0;
+         margin-bottom: 20px;
+         box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+         border: 1px solid var(--card-border);
+         overflow: hidden;
+         }
+         .card-header {
+         padding: 18px 24px;
+         font-size: 17px;
+         font-weight: 800;
+         border-bottom: 1px solid #e3e6f3;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         }
+         .card-header.red { background: linear-gradient(135deg, #ffe5e5 0%, #fff0f0 100%); color: #b91c1c; }
+         .card-header.blue { background: linear-gradient(135deg, #e5f0ff 0%, #f0f6ff 100%); color: #075985; }
+         .card-content {
+         padding: 18px 20px 22px;
+         }
+         .termin-box {
+         padding: 22px 24px;
+         text-align: center;
+         }
+         .termin-date {
+         font-size: 20px;
+         font-weight: 800;
+         margin-bottom: 4px;
+         }
+         .termin-hint {
+         font-size: 12.5px;
+         color: var(--muted);
+         margin-bottom: 16px;
+         }
+         .summary-bar {
+         display: flex;
+         gap: 10px;
+         justify-content: center;
+         flex-wrap: wrap;
+         }
+         .summary-pill {
+         padding: 8px 14px;
+         border-radius: 999px;
+         font-size: 13px;
+         font-weight: 700;
+         border: 1px solid transparent;
+         }
+         .summary-pill.yes { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+         .summary-pill.no { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+         .summary-pill.pending { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+         .empty-state {
+         text-align: center;
+         color: var(--muted);
+         padding: 30px 24px;
+         font-size: 14px;
+         }
+         .player-row {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 12px;
+         padding: 10px 12px;
+         border-radius: 12px;
+         margin-bottom: 8px;
+         background: #f8fbff;
+         border: 1px solid #eef2f9;
+         flex-wrap: wrap;
+         }
+         .player-row:last-child { margin-bottom: 0; }
+         .player-name {
+         font-weight: 700;
+         font-size: 14.5px;
+         flex: 1;
+         min-width: 120px;
+         }
+         .captain-badge {
+         display: inline-block;
+         background: linear-gradient(135deg, #ffd700, #ffed4e);
+         color: #333;
+         font-weight: bold;
+         padding: 2px 6px;
+         border-radius: 4px;
+         margin-left: 6px;
+         font-size: 10px;
+         }
+         .goalkeeper-badge { margin-left: 6px; font-size: 15px; }
+         .vote-buttons {
+         display: flex;
+         gap: 8px;
+         }
+         .vote-btn {
+         border: 2px solid #e0e6ef;
+         background: #fff;
+         color: #475569;
+         padding: 8px 12px;
+         border-radius: 10px;
+         font-size: 12.5px;
+         font-weight: 700;
+         cursor: pointer;
+         transition: all 0.2s ease;
+         white-space: nowrap;
+         }
+         .vote-btn:hover { transform: translateY(-1px); }
+         .vote-btn.yes.active {
+         background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
+         border-color: transparent;
+         color: #fff;
+         box-shadow: 0 6px 14px rgba(0, 184, 148, 0.3);
+         }
+         .vote-btn.no.active {
+         background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
+         border-color: transparent;
+         color: #fff;
+         box-shadow: 0 6px 14px rgba(255, 71, 87, 0.3);
+         }
+         a:focus-visible, button:focus-visible {
+         outline: 3px solid var(--brand);
+         outline-offset: 2px;
+         }
+         @media (max-width: 480px) {
+         header { padding: 20px; border-radius: 16px; }
+         .card { border-radius: 16px; }
+         .termin-box { padding: 18px; }
+         .termin-date { font-size: 17px; }
+         .card-content { padding: 14px 14px 18px; }
+         .player-row { padding: 10px; }
+         .vote-btn { padding: 8px 10px; font-size: 11.5px; }
+         }
+         @media (prefers-reduced-motion: reduce) {
+         * { transition: none !important; }
+         }
+         body.theme-dark {
+         --bg-a: #0b1220;
+         --bg-b: #0f172a;
+         --ink: #e2e8f0;
+         --muted: #94a3b8;
+         --card-border: #243244;
+         }
+         body.theme-dark header,
+         body.theme-dark .card {
+         background: #111b2e;
+         border-color: #2b3a50;
+         color: #dbe7f4;
+         }
+         body.theme-dark .card-header.red { background: #2a1c28; color: #fecdd3; }
+         body.theme-dark .card-header.blue { background: #172739; color: #bfdbfe; }
+         body.theme-dark .player-row { background: #16243a; border-color: #2b3a50; }
+         body.theme-dark .vote-btn { background: #0f1a2c; border-color: #355276; color: #cbd5e1; }
+         body.theme-dark .summary-pill.yes { background: #0f2a22; border-color: #1f7a53; color: #6be3ab; }
+         body.theme-dark .summary-pill.no { background: #2a1c28; border-color: #7f2f44; color: #fecdd3; }
+         body.theme-dark .summary-pill.pending { background: #16243a; border-color: #355276; color: #9fb3c8; }
+         body.theme-dark #themeToggle { background: #0f1a2c; border-color: #355276; color: #9ad4ff; }
+         body.theme-dark #themeToggle:hover { background: #1178c8; color: #fff; }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <header>
+            <a href="index.html" class="back-link">← Nazad na rezultate</a>
+            <div class="logo">📋 Prijava za termin</div>
+            <div class="hero-subtitle">Klikni pored svog imena i javi da li dolaziš. Odgovor možeš promeniti u svakom trenutku.</div>
+            <button id="themeToggle" type="button" aria-label="Promeni temu">🌙 Dark</button>
+         </header>
+
+         <div class="card" id="terminCard">
+            <div class="termin-box" id="terminBox">
+               <div class="termin-date">Učitavanje termina…</div>
+            </div>
+         </div>
+
+         <div id="pollLists"></div>
+      </div>
+
+      <script type="module">
+         import { onValue, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+         const THEME_KEY = "termin_theme";
+
+         function applyTheme(theme) {
+           const isDark = theme === "dark";
+           document.body.classList.toggle("theme-dark", isDark);
+           const btn = document.getElementById("themeToggle");
+           if (btn) {
+             btn.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+             btn.setAttribute("aria-label", isDark ? "Prebaci na svetlu temu" : "Prebaci na tamnu temu");
+           }
+         }
+
+         function initThemeToggle() {
+           const btn = document.getElementById("themeToggle");
+           if (!btn) return;
+           let initial = "light";
+           try {
+             const saved = localStorage.getItem(THEME_KEY);
+             if (saved === "dark" || saved === "light") {
+               initial = saved;
+             } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+               initial = "dark";
+             }
+           } catch (_) {}
+           applyTheme(initial);
+           btn.addEventListener("click", () => {
+             const next = document.body.classList.contains("theme-dark") ? "light" : "dark";
+             applyTheme(next);
+             try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+           });
+         }
+         initThemeToggle();
+
+         function escapeHtml(value) {
+           return String(value ?? "").replace(/[&<>"']/g, char => ({
+             "&": "&amp;",
+             "<": "&lt;",
+             ">": "&gt;",
+             '"': "&quot;",
+             "'": "&#39;"
+           }[char]));
+         }
+
+         function formatPlayerName(name) {
+           if (!name) return '';
+           let displayName = name;
+           let badges = '';
+           const captainRegex = /\s*\(c\)\s*/i;
+           if (captainRegex.test(name)) {
+             displayName = name.replace(captainRegex, ' ').trim();
+             badges += '<span class="captain-badge">C</span>';
+           }
+           const goalkeeperRegex = /\s*\(g\)\s*/i;
+           if (goalkeeperRegex.test(name)) {
+             displayName = name.replace(goalkeeperRegex, ' ').trim();
+             badges += '<span class="goalkeeper-badge">🧤</span>';
+           }
+           return escapeHtml(displayName) + badges;
+         }
+
+         const MONTHS_SR = ["januar", "februar", "mart", "april", "maj", "jun", "jul", "avgust", "septembar", "oktobar", "novembar", "decembar"];
+
+         function formatTerminDate(dateValue) {
+           const raw = String(dateValue || "").trim();
+           const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+           if (!m) return raw;
+           const year = Number(m[1]), month = Number(m[2]), day = Number(m[3]);
+           if (!year || month < 1 || month > 12 || day < 1 || day > 31) return raw;
+           return `${day}. ${MONTHS_SR[month - 1]} ${year}.`;
+         }
+
+         function formatTerminTime(timeValue) {
+           const raw = String(timeValue || "").trim();
+           const m = raw.match(/^(\d{1,2}):(\d{2})$/);
+           if (!m) return raw;
+           const hours = Number(m[1]);
+           const minutes = m[2];
+           if (Number.isNaN(hours)) return raw;
+           return minutes === "00" ? `${hours}h` : `${hours}:${minutes}h`;
+         }
+
+         let players = { crveni: {}, plavi: {} };
+         let terminDate = null;
+         let terminTime = "";
+         let attendance = {};
+         let unsubAttendance = null;
+
+         function subscribeAttendance(dateKey) {
+           if (unsubAttendance) {
+             unsubAttendance();
+             unsubAttendance = null;
+           }
+           attendance = {};
+           if (!dateKey) {
+             render();
+             return;
+           }
+           unsubAttendance = onValue(window.dbRef("attendance/" + dateKey), snap => {
+             attendance = snap.val() || {};
+             render();
+           });
+         }
+
+         function render() {
+           const terminBox = document.getElementById("terminBox");
+           const listsBox = document.getElementById("pollLists");
+
+           if (!terminDate) {
+             terminBox.innerHTML = `<div class="termin-date">Sledeći termin još nije podešen</div>
+               <div class="termin-hint">Pitaj administratora da podesi datum sledećeg termina.</div>`;
+             listsBox.innerHTML = "";
+             return;
+           }
+
+           const allPlayers = [];
+           ["crveni", "plavi"].forEach(team => {
+             Object.entries(players[team] || {}).forEach(([id, p]) => {
+               allPlayers.push({ id, team, name: p.name || "" });
+             });
+           });
+
+           let yesCount = 0, noCount = 0, pendingCount = 0;
+           allPlayers.forEach(p => {
+             const status = attendance[p.id]?.status;
+             if (status === "yes") yesCount++;
+             else if (status === "no") noCount++;
+             else pendingCount++;
+           });
+
+           terminBox.innerHTML = `
+             <div class="termin-date">${escapeHtml(formatTerminDate(terminDate))}${terminTime ? ` u ${escapeHtml(formatTerminTime(terminTime))}` : ""}</div>
+             <div class="summary-bar">
+               <div class="summary-pill yes">✅ Dolazi: ${yesCount}</div>
+               <div class="summary-pill no">❌ Ne dolazi: ${noCount}</div>
+               <div class="summary-pill pending">⏳ Čeka odgovor: ${pendingCount}</div>
+             </div>
+           `;
+
+           const rowsFor = team => Object.entries(players[team] || {})
+             .sort((a, b) => (a[1].name || "").localeCompare(b[1].name || "", "sr"))
+             .map(([id, p]) => {
+               const status = attendance[id]?.status;
+               return `
+                 <div class="player-row">
+                   <div class="player-name">${formatPlayerName(p.name)}</div>
+                   <div class="vote-buttons">
+                     <button type="button" class="vote-btn yes ${status === "yes" ? "active" : ""}" data-id="${id}" data-team="${team}" data-status="yes">✅ Dolazim</button>
+                     <button type="button" class="vote-btn no ${status === "no" ? "active" : ""}" data-id="${id}" data-team="${team}" data-status="no">❌ Ne dolazim</button>
+                   </div>
+                 </div>
+               `;
+             }).join("") || `<p class="empty-state">Nema igrača u ovom timu.</p>`;
+
+           listsBox.innerHTML = `
+             <div class="card">
+               <div class="card-header red">🔴 Crveni</div>
+               <div class="card-content">${rowsFor("crveni")}</div>
+             </div>
+             <div class="card">
+               <div class="card-header blue">🔵 Plavi</div>
+               <div class="card-content">${rowsFor("plavi")}</div>
+             </div>
+           `;
+         }
+
+         onValue(window.dbRef("nextTermin"), snap => {
+           const t = snap.val();
+           terminDate = (t && t.date) || null;
+           terminTime = (t && t.time) || "";
+           subscribeAttendance(terminDate);
+         });
+
+         onValue(window.dbRef("players"), snap => {
+           players = snap.val() || { crveni: {}, plavi: {} };
+           render();
+         });
+
+         document.getElementById("pollLists").addEventListener("click", async e => {
+           const btn = e.target.closest("button[data-id][data-team][data-status]");
+           if (!btn || !terminDate) return;
+
+           const { id, team, status } = btn.dataset;
+           const current = attendance[id]?.status;
+           const nextStatus = current === status ? null : status;
+
+           if (nextStatus === null) {
+             await set(window.dbRef(`attendance/${terminDate}/${id}`), null);
+           } else {
+             await set(window.dbRef(`attendance/${terminDate}/${id}`), {
+               team,
+               status: nextStatus,
+               ts: Date.now()
+             });
+           }
+         });
+      </script>
+   </body>
+</html>
