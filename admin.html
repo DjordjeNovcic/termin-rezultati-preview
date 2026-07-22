@@ -1142,36 +1142,50 @@
            return true;
          }
          
-         /* UPDATE STATS */
-         async function updateOne(team,id,field,delta){
-           const ref = window.dbRef(`players/${team}/${id}`);
-           const snap = await get(ref);
-           if (!snap.exists()) return;
-         
-           const p = snap.val();
-           const next = Math.max(0, (p[field]||0) + delta);
-           await update(ref, { [field]: next });
-         }
-         
+         /* UPDATE STATS — jedan atomski multi-path update, da se izbegne
+            delimično čuvanje ako se stranica zatvori usred procesa */
          async function applyStats(match, dir) {
            const played = Object.entries(match.played || {});
            const scor = match.scorers || [];
-         
-           for (const [id, team] of played) {
-             await updateOne(team, id, "matches", dir);
+
+           const deltas = new Map();
+           const bump = (team, id, field, amount) => {
+             const key = `${team}/${id}`;
+             const d = deltas.get(key) || { matches: 0, goals: 0 };
+             d[field] += amount;
+             deltas.set(key, d);
+           };
+
+           played.forEach(([id, team]) => bump(team, id, "matches", dir));
+           scor.forEach(s => {
+             if (s.type === "own_goal") return;
+             bump(s.team, s.id, "goals", dir);
+           });
+
+           if (!deltas.size) return;
+
+           const keys = [...deltas.keys()];
+           const snaps = await Promise.all(keys.map(key => get(window.dbRef(`players/${key}`))));
+
+           const patch = {};
+           keys.forEach((key, i) => {
+             const snap = snaps[i];
+             if (!snap.exists()) return;
+             const p = snap.val();
+             const d = deltas.get(key);
+             if (d.matches) patch[`${key}/matches`] = Math.max(0, (p.matches || 0) + d.matches);
+             if (d.goals) patch[`${key}/goals`] = Math.max(0, (p.goals || 0) + d.goals);
+           });
+
+           if (Object.keys(patch).length) {
+             await update(window.dbRef("players"), patch);
            }
-         
-           for (const s of scor) {
-         if (s.type && s.type === "own_goal") continue;
-         
-         await updateOne(s.team, s.id, "goals", dir);
-         }
          }
          
          /* SAVE MATCH */
          saveBtn.onclick = async () =>{
            if(!validate()) return;
-         
+
            const match = {
              round:round.value,
              date:date.value,
@@ -1183,41 +1197,61 @@
              scorers: JSON.parse(JSON.stringify(scorers)),
              timestamp:Date.now()
            };
-         
-           await push(window.dbRef("matches"), match);
-           await applyStats(match, +1);
-           clearForm();
+
+           const originalLabel = saveBtn.textContent;
+           saveBtn.disabled = true;
+           saveBtn.textContent = "Čuvanje... ne zatvaraj stranicu";
+           try {
+             await push(window.dbRef("matches"), match);
+             await applyStats(match, +1);
+             clearForm();
+           } finally {
+             saveBtn.disabled = false;
+             saveBtn.textContent = originalLabel;
+           }
          };
-         
+
          /* UPDATE MATCH */
          updateBtn.onclick = async () => {
            if(!validate()) return;
-         
-           const oldSnap = await get(window.dbRef(`matches/${editingId}`));
-           const oldMatch = oldSnap.val();
-           await applyStats(oldMatch, -1);
-         
-           const newMatch = {
-             round:round.value,
-             date:date.value,
-             time:time.value,
-             red:+red.value,
-             blue:+blue.value,
-             info:info.value.trim(),
-             played:getPlayed(),
-             scorers: JSON.parse(JSON.stringify(scorers)),
-             timestamp: oldMatch.timestamp
-           };
-         
-           await update(window.dbRef(`matches/${editingId}`), newMatch);
-           await applyStats(newMatch, +1);
-           clearForm();
+
+           const originalLabel = updateBtn.textContent;
+           updateBtn.disabled = true;
+           updateBtn.textContent = "Čuvanje izmena... ne zatvaraj stranicu";
+           try {
+             const oldSnap = await get(window.dbRef(`matches/${editingId}`));
+             const oldMatch = oldSnap.val();
+             await applyStats(oldMatch, -1);
+
+             const newMatch = {
+               round:round.value,
+               date:date.value,
+               time:time.value,
+               red:+red.value,
+               blue:+blue.value,
+               info:info.value.trim(),
+               played:getPlayed(),
+               scorers: JSON.parse(JSON.stringify(scorers)),
+               timestamp: oldMatch.timestamp
+             };
+
+             await update(window.dbRef(`matches/${editingId}`), newMatch);
+             await applyStats(newMatch, +1);
+             clearForm();
+           } finally {
+             updateBtn.disabled = false;
+             updateBtn.textContent = originalLabel;
+           }
          };
-         
+
          /* DELETE MATCH */
-         window.deleteMatch = async id => {
+         window.deleteMatch = async (id, button) => {
            if (!confirm("Obrisati meč?")) return;
-         
+
+           if (button) {
+             button.disabled = true;
+             button.textContent = "Brisanje...";
+           }
            const snap = await get(window.dbRef(`matches/${id}`));
            await applyStats(snap.val(), -1);
            await remove(window.dbRef(`matches/${id}`));
@@ -1287,7 +1321,7 @@
              return;
            }
            if (button.dataset.action === "delete") {
-             window.deleteMatch(id);
+             window.deleteMatch(id, button);
            }
          });
          

@@ -784,6 +784,13 @@
             <button id="resetStatsBtn">
             Resetuj SVE golove i utakmice
             </button>
+            <!-- REKALKULACIJA STATISTIKE IZ ISTORIJE -->
+            <button id="recalcStatsBtn" class="add-btn" style="width:100%;margin-bottom:22px;">
+            Rekalkuliši statistiku iz istorije mečeva
+            </button>
+            <p style="text-align:center;font-size:12.5px;color:#636e72;margin:-14px 0 22px;">
+            Ako se nekom igraču golovi/utakmice ne slažu (npr. veza je pukla usred čuvanja meča), ovo ih ponovo izračuna iz svih sačuvanih mečeva.
+            </p>
             <!-- CRVENI -->
             <div class="team-title" style="color:#d63031;">Crveni</div>
             <div class="input-row">
@@ -1095,6 +1102,60 @@
            }
          
            alert("Statistika resetovana!");
+         };
+
+         /* ------------------ REKALKULACIJA STATISTIKE IZ ISTORIJE ------------------ */
+         document.getElementById("recalcStatsBtn").onclick = async () => {
+           if (!confirm("Ovo će ponovo izračunati golove i utakmice SVIH igrača na osnovu istorije mečeva i prepisati trenutne vrednosti. Nastaviti?")) return;
+
+           const [playersSnap, matchesSnap] = await Promise.all([
+             get(window.dbRef("players")),
+             get(window.dbRef("matches"))
+           ]);
+
+           const currentPlayers = playersSnap.val() || {};
+           const allMatches = matchesSnap.val() || {};
+
+           const computed = {};
+           for (const team of ["crveni", "plavi"]) {
+             for (const id of Object.keys(currentPlayers[team] || {})) {
+               computed[`${team}/${id}`] = { goals: 0, matches: 0 };
+             }
+           }
+
+           for (const match of Object.values(allMatches)) {
+             for (const [id, team] of Object.entries(match.played || {})) {
+               const key = `${team}/${id}`;
+               if (!computed[key]) continue;
+               computed[key].matches++;
+             }
+             for (const s of match.scorers || []) {
+               if (s.type === "own_goal") continue;
+               const key = `${s.team}/${s.id}`;
+               if (!computed[key]) continue;
+               computed[key].goals++;
+             }
+           }
+
+           const patch = {};
+           let changedCount = 0;
+           for (const [key, stats] of Object.entries(computed)) {
+             const [team, id] = key.split("/");
+             const before = currentPlayers[team][id];
+             if ((before.goals || 0) !== stats.goals || (before.matches || 0) !== stats.matches) {
+               patch[`${key}/goals`] = stats.goals;
+               patch[`${key}/matches`] = stats.matches;
+               changedCount++;
+             }
+           }
+
+           if (!changedCount) {
+             alert("Sve je već tačno — nema šta da se ispravi.");
+             return;
+           }
+
+           await update(window.dbRef("players"), patch);
+           alert(`Gotovo! Ispravljeno igrača: ${changedCount}.`);
          };
       </script>
       <script>
