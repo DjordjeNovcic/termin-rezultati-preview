@@ -1135,12 +1135,11 @@
            return true;
          }
          
-         /* UPDATE STATS — jedan atomski multi-path update, da se izbegne
-            delimično čuvanje ako se stranica zatvori usred procesa */
-         async function applyStats(match, dir) {
-           const played = Object.entries(match.played || {});
-           const scor = match.scorers || [];
-
+         /* STATS PATCH — računa promene statistika igrača za listu
+            [meč, smer] parova (+1 dodaje meč, -1 ga poništava). Vraća patch
+            koji se šalje u ISTOM multi-path update-u kao i sam meč, tako da
+            se meč i statistike uvek sačuvaju zajedno ili nijedno. */
+         async function statsPatch(changes) {
            const deltas = new Map();
            const bump = (team, id, field, amount) => {
              const key = `${team}/${id}`;
@@ -1149,13 +1148,13 @@
              deltas.set(key, d);
            };
 
-           played.forEach(([id, team]) => bump(team, id, "matches", dir));
-           scor.forEach(s => {
-             if (s.type === "own_goal") return;
-             bump(s.team, s.id, "goals", dir);
+           changes.forEach(([match, dir]) => {
+             Object.entries(match?.played || {}).forEach(([id, team]) => bump(team, id, "matches", dir));
+             (match?.scorers || []).forEach(s => {
+               if (s.type === "own_goal") return;
+               bump(s.team, s.id, "goals", dir);
+             });
            });
-
-           if (!deltas.size) return;
 
            const keys = [...deltas.keys()];
            const snaps = await Promise.all(keys.map(key => get(window.dbRef(`players/${key}`))));
@@ -1166,20 +1165,14 @@
              if (!snap.exists()) return;
              const p = snap.val();
              const d = deltas.get(key);
-             if (d.matches) patch[`${key}/matches`] = Math.max(0, (p.matches || 0) + d.matches);
-             if (d.goals) patch[`${key}/goals`] = Math.max(0, (p.goals || 0) + d.goals);
+             if (d.matches) patch[`players/${key}/matches`] = Math.max(0, (p.matches || 0) + d.matches);
+             if (d.goals) patch[`players/${key}/goals`] = Math.max(0, (p.goals || 0) + d.goals);
            });
-
-           if (Object.keys(patch).length) {
-             await update(window.dbRef("players"), patch);
-           }
+           return patch;
          }
-         
-         /* SAVE MATCH */
-         saveBtn.onclick = async () =>{
-           if(!validate()) return;
 
-           const match = {
+         function collectMatch(timestamp) {
+           return {
              round:round.value,
              date:date.value,
              time:time.value,
@@ -1188,16 +1181,32 @@
              info:info.value.trim(),
              played:getPlayed(),
              scorers: JSON.parse(JSON.stringify(scorers)),
-             timestamp:Date.now()
+             timestamp
            };
+         }
+
+         function reportError(action, err) {
+           console.error(err);
+           alert(`${action} nije uspelo — ništa nije promenjeno.\n\n${err?.message || err}\n\nProveri internet (ili se ponovo uloguj) i pokušaj opet.`);
+         }
+
+         /* SAVE MATCH */
+         saveBtn.onclick = async () =>{
+           if(!validate()) return;
+
+           const match = collectMatch(Date.now());
 
            const originalLabel = saveBtn.textContent;
            saveBtn.disabled = true;
-           saveBtn.textContent = "Čuvanje... ne zatvaraj stranicu";
+           saveBtn.textContent = "Čuvanje...";
            try {
-             await push(window.dbRef("matches"), match);
-             await applyStats(match, +1);
+             const id = push(window.dbRef("matches")).key;
+             const patch = await statsPatch([[match, +1]]);
+             patch[`matches/${id}`] = match;
+             await update(window.dbRef(), patch);
              clearForm();
+           } catch (err) {
+             reportError("Čuvanje meča", err);
            } finally {
              saveBtn.disabled = false;
              saveBtn.textContent = originalLabel;
@@ -1210,27 +1219,23 @@
 
            const originalLabel = updateBtn.textContent;
            updateBtn.disabled = true;
-           updateBtn.textContent = "Čuvanje izmena... ne zatvaraj stranicu";
+           updateBtn.textContent = "Čuvanje izmena...";
            try {
              const oldSnap = await get(window.dbRef(`matches/${editingId}`));
+             if (!oldSnap.exists()) {
+               alert("Ovaj meč je u međuvremenu obrisan.");
+               clearForm();
+               return;
+             }
              const oldMatch = oldSnap.val();
-             await applyStats(oldMatch, -1);
+             const newMatch = collectMatch(oldMatch.timestamp);
 
-             const newMatch = {
-               round:round.value,
-               date:date.value,
-               time:time.value,
-               red:+red.value,
-               blue:+blue.value,
-               info:info.value.trim(),
-               played:getPlayed(),
-               scorers: JSON.parse(JSON.stringify(scorers)),
-               timestamp: oldMatch.timestamp
-             };
-
-             await update(window.dbRef(`matches/${editingId}`), newMatch);
-             await applyStats(newMatch, +1);
+             const patch = await statsPatch([[oldMatch, -1], [newMatch, +1]]);
+             patch[`matches/${editingId}`] = newMatch;
+             await update(window.dbRef(), patch);
              clearForm();
+           } catch (err) {
+             reportError("Čuvanje izmena", err);
            } finally {
              updateBtn.disabled = false;
              updateBtn.textContent = originalLabel;
@@ -1241,13 +1246,26 @@
          window.deleteMatch = async (id, button) => {
            if (!confirm("Obrisati meč?")) return;
 
+           const originalLabel = button?.textContent;
            if (button) {
              button.disabled = true;
              button.textContent = "Brisanje...";
            }
-           const snap = await get(window.dbRef(`matches/${id}`));
-           await applyStats(snap.val(), -1);
-           await remove(window.dbRef(`matches/${id}`));
+           try {
+             const snap = await get(window.dbRef(`matches/${id}`));
+             if (snap.exists()) {
+               const patch = await statsPatch([[snap.val(), -1]]);
+               patch[`matches/${id}`] = null;
+               await update(window.dbRef(), patch);
+             }
+             if (editingId === id) clearForm();
+           } catch (err) {
+             reportError("Brisanje meča", err);
+             if (button) {
+               button.disabled = false;
+               button.textContent = originalLabel;
+             }
+           }
          };
          
          /* FORMAT DATE */
@@ -1330,9 +1348,9 @@
            time.value = m.time;
            red.value = m.red;
            blue.value = m.blue;
-           info.value = m.info;
+           info.value = m.info || "";
          
-           scorers = [...m.scorers];
+           scorers = [...(m.scorers || [])];
            refreshTags();
          
            pendingPlayed = m.played || {};
