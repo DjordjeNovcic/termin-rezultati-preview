@@ -749,6 +749,312 @@
          content: none;
          }
          }
+
+         /* === Redesign V3 — paneli ekipa, kao na stranici Mečevi === */
+         :root {
+         --team-red: #e03131;
+         --team-red-soft: #fff4f4;
+         --team-red-border: #ffd0d0;
+         --team-blue: #1c7ed6;
+         --team-blue-soft: #f1f7ff;
+         --team-blue-border: #c5ddfb;
+         }
+         .container {
+         max-width: 1040px;
+         }
+         .nav-btn.logout {
+         background: #fff;
+         color: var(--team-red);
+         box-shadow: inset 0 0 0 1.5px var(--team-red-border);
+         }
+         .nav-btn.logout:hover {
+         background: var(--team-red-soft);
+         }
+         .card-title {
+         margin-bottom: 4px;
+         }
+         .card-sub {
+         margin-bottom: 20px;
+         text-align: center;
+         font-size: 13px;
+         color: #64748b;
+         }
+         .sr-only {
+         position: absolute;
+         width: 1px;
+         height: 1px;
+         overflow: hidden;
+         clip: rect(0 0 0 0);
+         white-space: nowrap;
+         }
+         .teams {
+         display: grid;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+         gap: 16px;
+         }
+         .team-panel {
+         min-width: 0;
+         padding: 16px;
+         border-radius: 16px;
+         border: 1px solid;
+         }
+         .team-panel.red { background: var(--team-red-soft); border-color: var(--team-red-border); --team: var(--team-red); --team-border: var(--team-red-border); }
+         .team-panel.blue { background: var(--team-blue-soft); border-color: var(--team-blue-border); --team: var(--team-blue); --team-border: var(--team-blue-border); }
+         .team-panel-head {
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         margin-bottom: 12px;
+         font-size: 18px;
+         font-weight: 800;
+         color: var(--team);
+         }
+         .team-dot {
+         width: 12px;
+         height: 12px;
+         border-radius: 50%;
+         background: var(--team);
+         }
+         .team-panel-head .count {
+         min-width: 24px;
+         height: 22px;
+         padding: 0 8px;
+         border-radius: 999px;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 12px;
+         color: #fff;
+         background: var(--team);
+         }
+         .add-row {
+         display: flex;
+         gap: 8px;
+         }
+         .add-row input {
+         flex: 1;
+         min-width: 0;
+         padding: 11px 14px;
+         border: 1.5px solid var(--team-border);
+         background: #fff;
+         font-size: 15px;
+         }
+         .add-row input:focus {
+         border-color: var(--team);
+         box-shadow: 0 0 0 4px color-mix(in srgb, var(--team) 14%, transparent);
+         }
+         .team-panel .add-btn {
+         width: auto;
+         min-height: 0;
+         flex: none;
+         padding: 0 16px;
+         border-radius: 12px;
+         background: var(--team);
+         box-shadow: none;
+         font: inherit;
+         font-size: 14px;
+         font-weight: 700;
+         text-transform: none;
+         letter-spacing: 0;
+         }
+         .team-panel .add-btn:hover {
+         transform: none;
+         filter: brightness(1.08);
+         box-shadow: 0 6px 14px color-mix(in srgb, var(--team) 30%, transparent);
+         }
+         .add-hint {
+         margin: 8px 2px 0;
+         font-size: 12px;
+         color: #64748b;
+         }
+         .team-panel .table-wrapper {
+         margin-top: 12px;
+         max-height: none;
+         overflow: hidden;
+         border: 1px solid var(--team-border);
+         box-shadow: none;
+         }
+         .team-panel table {
+         min-width: 0;
+         }
+         .team-panel th {
+         padding: 10px 12px;
+         background: #fff;
+         border-bottom: 1px solid var(--team-border);
+         }
+         .team-panel th:hover {
+         background: color-mix(in srgb, var(--team) 6%, #fff);
+         }
+         .team-panel th:first-child { border-top-left-radius: 14px; }
+         .team-panel th:last-child { border-top-right-radius: 14px; }
+         .team-panel th.sorted-asc::after,
+         .team-panel th.sorted-desc::after {
+         color: var(--team);
+         }
+         .team-panel th.num,
+         .team-panel td.num {
+         text-align: center;
+         width: 1%;
+         white-space: nowrap;
+         }
+         .team-panel th.actions-col {
+         width: 1%;
+         cursor: default;
+         }
+         .team-panel td {
+         padding: 9px 12px;
+         text-align: left;
+         font-size: 14px;
+         font-variant-numeric: tabular-nums;
+         }
+         .team-panel tbody tr:last-child td {
+         border-bottom: none;
+         }
+         .team-panel td:first-child {
+         font-weight: 600;
+         }
+         .team-panel td.goals {
+         font-weight: 800;
+         color: var(--team);
+         }
+         .team-panel tr:hover {
+         background: color-mix(in srgb, var(--team) 5%, #fff);
+         }
+         .team-panel .row-actions {
+         display: flex;
+         justify-content: flex-end;
+         gap: 6px;
+         }
+         .team-panel .edit-btn,
+         .team-panel .del-btn {
+         width: 34px;
+         min-width: 34px;
+         height: 34px;
+         min-height: 34px;
+         padding: 0;
+         border-radius: 10px;
+         background: #fff;
+         box-shadow: inset 0 0 0 1px #e2e8f0;
+         font-size: 15px;
+         line-height: 1;
+         }
+         .team-panel .edit-btn:hover {
+         background: #eef6ff;
+         box-shadow: inset 0 0 0 1px #b6d4f5;
+         }
+         .team-panel .del-btn:hover {
+         background: #fff1f2;
+         box-shadow: inset 0 0 0 1px #fecdd3;
+         }
+         /* Održavanje statistike */
+         .maintenance {
+         padding: 20px 24px;
+         }
+         .maint-title {
+         margin-bottom: 8px;
+         font-size: 13px;
+         font-weight: 800;
+         color: #64748b;
+         text-transform: uppercase;
+         letter-spacing: 0.06em;
+         }
+         .maint-row {
+         display: flex;
+         align-items: center;
+         gap: 16px;
+         padding: 14px 0;
+         border-top: 1px solid #eef2f7;
+         }
+         .maint-row:first-of-type {
+         border-top: none;
+         }
+         .maint-text {
+         flex: 1;
+         display: grid;
+         gap: 2px;
+         min-width: 0;
+         }
+         .maint-text strong {
+         font-size: 14px;
+         color: #1e293b;
+         }
+         .maint-text span {
+         font-size: 12.5px;
+         color: #64748b;
+         }
+         .maint-btn,
+         #resetStatsBtn {
+         flex: none;
+         width: auto;
+         max-width: none;
+         margin: 0;
+         padding: 10px 16px;
+         border: none;
+         border-radius: 10px;
+         background: #fff;
+         color: var(--admin-brand);
+         box-shadow: inset 0 0 0 1.5px #b6d4f5;
+         font: inherit;
+         font-size: 13px;
+         font-weight: 700;
+         text-transform: none;
+         letter-spacing: 0;
+         cursor: pointer;
+         transition: background 0.2s ease;
+         }
+         .maint-btn:hover {
+         background: #eef6ff;
+         transform: none;
+         }
+         .maint-row.danger #resetStatsBtn {
+         color: #e11d48;
+         box-shadow: inset 0 0 0 1.5px #fecdd3;
+         }
+         .maint-row.danger #resetStatsBtn:hover {
+         background: #fff1f2;
+         box-shadow: inset 0 0 0 1.5px #fda4af;
+         filter: none;
+         }
+         @media (max-width: 860px) {
+         .teams {
+         grid-template-columns: minmax(0, 1fr);
+         }
+         }
+         @media (max-width: 640px) {
+         .team-panel {
+         padding: 14px 12px;
+         }
+         .team-panel .table-wrapper table {
+         min-width: 0;
+         }
+         .team-panel th,
+         .team-panel td {
+         padding: 8px;
+         font-size: 13px;
+         }
+         .team-panel th {
+         font-size: 10px;
+         }
+         .team-panel .edit-btn,
+         .team-panel .del-btn {
+         width: 32px;
+         min-width: 32px;
+         height: 32px;
+         min-height: 32px;
+         }
+         .maintenance {
+         padding: 18px 16px;
+         }
+         .maint-row {
+         flex-direction: column;
+         align-items: stretch;
+         gap: 10px;
+         }
+         .maint-btn,
+         #resetStatsBtn {
+         width: 100%;
+         }
+         }
       </style>
    </head>
    <body>
@@ -780,54 +1086,74 @@
          <!-- MAIN CARD -->
          <div class="card" id="matchTables">
             <h1 class="card-title">Upravljanje igračima</h1>
-            <!-- RESET SVIH STATISTIKA -->
-            <button id="resetStatsBtn">
-            Resetuj SVE golove i utakmice
-            </button>
-            <!-- REKALKULACIJA STATISTIKE IZ ISTORIJE -->
-            <button id="recalcStatsBtn" class="add-btn" style="width:100%;margin-bottom:22px;">
-            Rekalkuliši statistiku iz istorije mečeva
-            </button>
-            <p style="text-align:center;font-size:12.5px;color:#636e72;margin:-14px 0 22px;">
-            Ako se nekom igraču golovi/utakmice ne slažu (npr. veza je pukla usred čuvanja meča), ovo ih ponovo izračuna iz svih sačuvanih mečeva.
-            </p>
-            <!-- CRVENI -->
-            <div class="team-title" style="color:#d63031;">Crveni</div>
-            <div class="input-row">
-               <input id="redInput" placeholder="Ime igrača">
-               <button class="add-btn" onclick="addPlayer('crveni')">Dodaj</button>
+            <p class="card-sub">Klikni na naslov kolone da sortiraš.</p>
+            <div class="teams">
+               <section class="team-panel red">
+                  <div class="team-panel-head">
+                     <span class="team-dot"></span>Crveni
+                     <span class="count" id="redCount">0</span>
+                  </div>
+                  <form class="add-row" onsubmit="event.preventDefault(); addPlayer('crveni')">
+                     <input id="redInput" placeholder="Ime novog igrača" autocomplete="off">
+                     <button type="submit" class="add-btn">+ Dodaj</button>
+                  </form>
+                  <p class="add-hint">Dodaj <b>(c)</b> za kapitena ili <b>(g)</b> za golmana, npr. „Marko (c)”.</p>
+                  <div class="table-wrapper">
+                     <table>
+                        <thead>
+                           <tr>
+                              <th data-sort="name" data-team="crveni">Igrač</th>
+                              <th data-sort="goals" data-team="crveni" class="num">Golovi</th>
+                              <th data-sort="matches" data-team="crveni" class="num">Utakmice</th>
+                              <th class="actions-col"><span class="sr-only">Akcija</span></th>
+                           </tr>
+                        </thead>
+                        <tbody id="redList"></tbody>
+                     </table>
+                  </div>
+               </section>
+               <section class="team-panel blue">
+                  <div class="team-panel-head">
+                     <span class="team-dot"></span>Plavi
+                     <span class="count" id="blueCount">0</span>
+                  </div>
+                  <form class="add-row" onsubmit="event.preventDefault(); addPlayer('plavi')">
+                     <input id="blueInput" placeholder="Ime novog igrača" autocomplete="off">
+                     <button type="submit" class="add-btn">+ Dodaj</button>
+                  </form>
+                  <p class="add-hint">Dodaj <b>(c)</b> za kapitena ili <b>(g)</b> za golmana, npr. „Marko (c)”.</p>
+                  <div class="table-wrapper">
+                     <table>
+                        <thead>
+                           <tr>
+                              <th data-sort="name" data-team="plavi">Igrač</th>
+                              <th data-sort="goals" data-team="plavi" class="num">Golovi</th>
+                              <th data-sort="matches" data-team="plavi" class="num">Utakmice</th>
+                              <th class="actions-col"><span class="sr-only">Akcija</span></th>
+                           </tr>
+                        </thead>
+                        <tbody id="blueList"></tbody>
+                     </table>
+                  </div>
+               </section>
             </div>
-            <div class="table-wrapper">
-               <table>
-                  <thead>
-                     <tr>
-                        <th data-sort="name" data-team="crveni">Igrač</th>
-                        <th data-sort="goals" data-team="crveni">Golovi</th>
-                        <th data-sort="matches" data-team="crveni">Utakmice</th>
-                        <th>Akcija</th>
-                     </tr>
-                  </thead>
-                  <tbody id="redList"></tbody>
-               </table>
+         </div>
+         <!-- ODRŽAVANJE STATISTIKE -->
+         <div class="card maintenance">
+            <h2 class="maint-title">Održavanje statistike</h2>
+            <div class="maint-row">
+               <div class="maint-text">
+                  <strong>Rekalkuliši iz istorije mečeva</strong>
+                  <span>Ako se nekom igraču golovi/utakmice ne slažu, ovo ih ponovo izračuna iz svih sačuvanih mečeva.</span>
+               </div>
+               <button id="recalcStatsBtn" type="button" class="maint-btn">Rekalkuliši</button>
             </div>
-            <!-- PLAVI -->
-            <div class="team-title" style="color:#0984e3;">Plavi</div>
-            <div class="input-row">
-               <input id="blueInput" placeholder="Ime igrača">
-               <button class="add-btn" onclick="addPlayer('plavi')">Dodaj</button>
-            </div>
-            <div class="table-wrapper">
-               <table>
-                  <thead>
-                     <tr>
-                        <th data-sort="name" data-team="plavi">Igrač</th>
-                        <th data-sort="goals" data-team="plavi">Golovi</th>
-                        <th data-sort="matches" data-team="plavi">Utakmice</th>
-                        <th>Akcija</th>
-                     </tr>
-                  </thead>
-                  <tbody id="blueList"></tbody>
-               </table>
+            <div class="maint-row danger">
+               <div class="maint-text">
+                  <strong>Resetuj SVE golove i utakmice</strong>
+                  <span>Svim igračima postavlja golove i utakmice na 0. Ne može da se vrati.</span>
+               </div>
+               <button id="resetStatsBtn" type="button" class="maint-btn">Resetuj sve</button>
             </div>
          </div>
       </div>
@@ -900,12 +1226,12 @@
            return `
              <tr>
                <td data-label="Ime">${formatPlayerName(player.name)}</td>
-               <td data-label="Golovi">${player.goals || 0}</td>
-               <td data-label="Utakmice">${player.matches || 0}</td>
+               <td data-label="Golovi" class="num goals">${player.goals || 0}</td>
+               <td data-label="Utakmice" class="num">${player.matches || 0}</td>
                <td data-label="Akcija">
                  <div class="row-actions">
-                   <button type="button" class="edit-btn" data-action="rename" data-team="${team}" data-id="${id}" data-name="${encodedName}">Izmeni</button>
-                   <button type="button" class="del-btn" data-action="delete" data-team="${team}" data-id="${id}" data-name="${encodedName}">Obriši</button>
+                   <button type="button" class="edit-btn" title="Izmeni ime" aria-label="Izmeni ime" data-action="rename" data-team="${team}" data-id="${id}" data-name="${encodedName}">✏️</button>
+                   <button type="button" class="del-btn" title="Obriši igrača" aria-label="Obriši igrača" data-action="delete" data-team="${team}" data-id="${id}" data-name="${encodedName}">🗑️</button>
                  </div>
                </td>
              </tr>
@@ -951,6 +1277,8 @@
              tbody.innerHTML += rowTemplate(p.id, p, team);
            });
          
+           document.getElementById(team === "crveni" ? "redCount" : "blueCount").textContent = players.length;
+
            // Update sort indicators
            updateSortIndicators(team);
          }
