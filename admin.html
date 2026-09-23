@@ -829,7 +829,7 @@
                </div>
             </div>
             <div class="form-group">
-               <label class="form-label">Info o meču</label>
+               <label class="form-label">Info o meču (opciono)</label>
                <textarea id="info" placeholder="Dodajte dodatne informacije o meču..."></textarea>
             </div>
             <!-- IGRALI CRVENI -->
@@ -989,8 +989,19 @@
            });
             })();
          
+         /* Strelac je sigurno igrao — označi ga i u "Igrali" */
+         function markPlayed(playerId, team) {
+           const container = team === "crveni" ? "#playedRed" : "#playedBlue";
+           const btn = document.querySelector(`${container} .player-btn[data-id="${playerId}"]`);
+           if (btn && !btn.classList.contains("active")) {
+             btn.classList.add("active");
+             pendingPlayed = getPlayed();
+           }
+         }
+
          document.getElementById("scorersRedPlayers").addEventListener("click", (e) => {
          if (e.target.classList.contains("player-btn")) {
+         markPlayed(e.target.dataset.id, e.target.dataset.team);
          scorers.push({
          id: e.target.dataset.id,
          team: e.target.dataset.team,
@@ -1004,6 +1015,7 @@
          
            document.getElementById("scorersBluePlayers").addEventListener("click", (e) => {
          if (e.target.classList.contains("player-btn")) {
+         markPlayed(e.target.dataset.id, e.target.dataset.team);
          scorers.push({
          id: e.target.dataset.id,
          team: e.target.dataset.team,
@@ -1110,7 +1122,6 @@
            if(!round.value) e.push("Kolo?");
            if(!date.value)  e.push("Datum?");
            if(!time.value)  e.push("Vreme?");
-           if(!info.value.trim()) e.push("Info?");
            if(Object.keys(getPlayed()).length===0) e.push("Igrali?");
             
            if (scorers.length === 0 && (+red.value > 0 || +blue.value > 0)) {
@@ -1262,7 +1273,7 @@
            document.querySelectorAll(".player-btn.active").forEach(b => b.classList.remove("active"));
            refreshTags();
          
-           const d = getNextThursday();
+           const d = getLastThursday();
            date.value = formatDateForInput(d);
            time.value = "18:00";
          
@@ -1334,18 +1345,16 @@
            window.scrollTo({ top: 0, behavior: 'smooth' });
          };
          
-         /* AUTO THURSDAY */
-         function getNextThursday() {
-           const now = new Date();
-           let diff = (4 - now.getDay() + 7) % 7;
-           if (diff === 0) diff = 7;
+         /* AUTO THURSDAY — rezultat se unosi posle meča, pa je podrazumevani
+            datum poslednji četvrtak (današnji, ako je danas četvrtak) */
+         function getLastThursday() {
            const d = new Date();
-           d.setDate(now.getDate() + diff);
+           d.setDate(d.getDate() - (d.getDay() - 4 + 7) % 7);
            return d;
          }
          
          (function(){
-           const d = getNextThursday();
+           const d = getLastThursday();
            date.value = formatDateForInput(d);
            time.value = "18:00";
            autoFillRound();
