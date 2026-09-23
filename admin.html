@@ -1073,13 +1073,16 @@
          grid-template-columns: 1fr 1fr;
          }
          }
+         .logo-ball {
+         -webkit-text-fill-color: initial;
+         }
       </style>
    </head>
    <body>
       <div class="container">
          <!-- HEADER -->
          <header>
-            <div class="logo">⚽ Admin Panel</div>
+            <div class="logo"><span class="logo-ball" aria-hidden="true">⚽</span> Admin Panel</div>
             <div class="nav-buttons">
                <button class="nav-btn active" onclick="window.location.href='admin.html'">Mečevi</button>
                <button class="nav-btn" onclick="window.location.href='admin-igraci.html'">Igrači</button>
