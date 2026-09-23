@@ -329,13 +329,6 @@
          color: white;
          display: none;
          }
-         #redOwnGoalBtn,
-         #blueOwnGoalBtn {
-         display: block;
-         }
-         #blueOwnGoalBtn {
-         margin-bottom: 8px;
-         }
          .form-actions {
          margin-top: 14px;
          padding-top: 14px;
@@ -773,6 +766,313 @@
          content: none;
          }
          }
+
+         /* === Redesign V3 — ekipe, aktivne boje, tabla rezultata === */
+         :root {
+         --team-red: #e03131;
+         --team-red-soft: #fff4f4;
+         --team-red-border: #ffd0d0;
+         --team-blue: #1c7ed6;
+         --team-blue-soft: #f1f7ff;
+         --team-blue-border: #c5ddfb;
+         }
+         .nav-btn.logout {
+         background: #fff;
+         color: var(--team-red);
+         box-shadow: inset 0 0 0 1.5px var(--team-red-border);
+         }
+         .nav-btn.logout:hover {
+         background: var(--team-red-soft);
+         }
+         /* Tabla rezultata */
+         .scoreboard {
+         display: flex;
+         align-items: center;
+         gap: 14px;
+         padding: 14px 18px;
+         border-radius: 16px;
+         border: 1px solid var(--admin-border);
+         background: linear-gradient(90deg, var(--team-red-soft) 0%, #fff 50%, var(--team-blue-soft) 100%);
+         }
+         .score-side {
+         flex: 1;
+         display: flex;
+         align-items: center;
+         gap: 12px;
+         min-width: 0;
+         }
+         .score-side.red {
+         justify-content: flex-end;
+         }
+         .score-team {
+         font-size: 14px;
+         font-weight: 800;
+         text-transform: uppercase;
+         letter-spacing: 0.06em;
+         }
+         .score-side.red .score-team { color: var(--team-red); }
+         .score-side.blue .score-team { color: var(--team-blue); }
+         .scoreboard input[readonly] {
+         width: 68px;
+         height: 60px;
+         flex: none;
+         padding: 0;
+         border: none;
+         border-radius: 14px;
+         text-align: center;
+         font-size: 32px;
+         font-weight: 800;
+         color: #fff;
+         cursor: default;
+         -moz-appearance: textfield;
+         }
+         .scoreboard input::-webkit-inner-spin-button,
+         .scoreboard input::-webkit-outer-spin-button {
+         -webkit-appearance: none;
+         margin: 0;
+         }
+         .scoreboard input::placeholder { color: rgba(255, 255, 255, 0.75); }
+         .score-side.red input { background: var(--team-red); box-shadow: 0 8px 18px rgba(224, 49, 49, 0.25); }
+         .score-side.blue input { background: var(--team-blue); box-shadow: 0 8px 18px rgba(28, 126, 214, 0.25); }
+         .score-sep {
+         font-size: 28px;
+         font-weight: 800;
+         color: #94a3b8;
+         }
+         .score-hint {
+         margin-top: 8px;
+         font-size: 12px;
+         color: #64748b;
+         text-align: center;
+         }
+         /* Paneli ekipa */
+         .teams {
+         display: grid;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+         gap: 16px;
+         margin-top: 6px;
+         }
+         .team-panel {
+         min-width: 0;
+         padding: 16px;
+         border-radius: 16px;
+         border: 1px solid;
+         }
+         .team-panel.red { background: var(--team-red-soft); border-color: var(--team-red-border); --team: var(--team-red); --team-border: var(--team-red-border); }
+         .team-panel.blue { background: var(--team-blue-soft); border-color: var(--team-blue-border); --team: var(--team-blue); --team-border: var(--team-blue-border); }
+         .team-panel-head {
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         font-size: 18px;
+         font-weight: 800;
+         color: var(--team);
+         }
+         .team-dot {
+         width: 12px;
+         height: 12px;
+         border-radius: 50%;
+         background: var(--team);
+         }
+         .sub-title {
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         margin: 16px 0 8px;
+         font-size: 12px;
+         font-weight: 700;
+         color: #475569;
+         text-transform: uppercase;
+         letter-spacing: 0.06em;
+         }
+         .count {
+         min-width: 22px;
+         height: 20px;
+         padding: 0 7px;
+         border-radius: 999px;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 11px;
+         color: #fff;
+         background: var(--team);
+         }
+         .sub-hint {
+         font-weight: 500;
+         text-transform: none;
+         letter-spacing: 0;
+         color: #94a3b8;
+         }
+         .team-panel .players-grid {
+         gap: 8px;
+         margin-bottom: 0;
+         }
+         .team-panel .player-btn {
+         padding: 8px 12px;
+         border: 1.5px solid #e2e8f0;
+         border-radius: 10px;
+         background: #fff;
+         color: #1e293b;
+         }
+         .player-btn > * {
+         pointer-events: none;
+         }
+         .team-panel .player-btn:hover {
+         border-color: var(--team);
+         transform: translateY(-1px);
+         box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+         }
+         /* Aktivno = igrao: puna boja ekipe + štiklica */
+         #playedRed .player-btn.active,
+         #playedBlue .player-btn.active {
+         background: var(--team);
+         border-color: var(--team);
+         color: #fff;
+         box-shadow: 0 6px 14px color-mix(in srgb, var(--team) 30%, transparent);
+         }
+         #playedRed .player-btn.active::before,
+         #playedBlue .player-btn.active::before {
+         content: "✓";
+         margin-right: 6px;
+         font-weight: 800;
+         }
+         /* Strelac sa golovima: obojen okvir + broj golova */
+         .team-panel .player-btn[data-goals] {
+         border-color: var(--team);
+         background: color-mix(in srgb, var(--team) 8%, #fff);
+         font-weight: 700;
+         }
+         .team-panel .player-btn[data-goals]::after {
+         content: "⚽ " attr(data-goals);
+         margin-left: 6px;
+         padding: 1px 7px;
+         border-radius: 999px;
+         font-size: 11px;
+         font-weight: 800;
+         color: var(--team);
+         background: #fff;
+         box-shadow: inset 0 0 0 1px var(--team-border);
+         }
+         .team-panel .scorers-tags:empty {
+         display: none;
+         }
+         .team-panel .tag {
+         padding: 6px 8px 6px 12px;
+         background: #fff;
+         border: 1px solid var(--team-border);
+         font-size: 13px;
+         }
+         .team-panel .tag.own-goal {
+         background: #fff8eb;
+         border-color: #fcd9a4;
+         color: #b45309;
+         }
+         .own-goal-btn {
+         width: 100%;
+         margin-top: 14px;
+         padding: 9px 12px;
+         border: 1.5px dashed var(--team-border);
+         border-radius: 10px;
+         background: transparent;
+         color: var(--team);
+         font: inherit;
+         font-size: 13px;
+         font-weight: 700;
+         cursor: pointer;
+         transition: background 0.2s ease, border-color 0.2s ease;
+         }
+         .own-goal-btn span {
+         font-weight: 500;
+         color: #64748b;
+         }
+         .own-goal-btn:hover {
+         background: #fff;
+         border-color: var(--team);
+         }
+         .btn:disabled {
+         opacity: 0.7;
+         cursor: progress;
+         transform: none;
+         }
+         /* Lista mečeva */
+         .res-team {
+         font-size: 12px;
+         font-weight: 700;
+         text-transform: uppercase;
+         letter-spacing: 0.04em;
+         }
+         .res-team.red { color: var(--team-red); }
+         .res-team.blue { color: var(--team-blue); }
+         .res-score {
+         display: inline-block;
+         margin: 0 6px;
+         font-size: 15px;
+         }
+         @media (max-width: 820px) {
+         .teams {
+         grid-template-columns: minmax(0, 1fr);
+         }
+         }
+         /* Mobilni: mečevi kao kartice umesto široke tabele sa skrolom */
+         @media (max-width: 640px) {
+         .table-wrapper {
+         max-height: none;
+         border: none;
+         background: transparent;
+         box-shadow: none;
+         }
+         .table-wrapper table,
+         .table-wrapper tbody {
+         display: block;
+         min-width: 0;
+         }
+         .table-wrapper thead {
+         display: none;
+         }
+         .table-wrapper tr {
+         display: grid;
+         grid-template-columns: auto minmax(0, 1fr);
+         grid-template-areas: "round result" "round date" "actions actions";
+         gap: 4px 14px;
+         align-items: center;
+         margin-bottom: 10px;
+         padding: 12px 14px;
+         border: 1px solid var(--admin-border);
+         border-radius: 14px;
+         background: #fff;
+         }
+         .table-wrapper td {
+         display: block;
+         width: auto;
+         padding: 0;
+         border: none;
+         font-size: 14px;
+         }
+         .table-wrapper td[data-label="Kolo"] {
+         grid-area: round;
+         min-width: 46px;
+         padding: 6px 8px;
+         border-radius: 10px;
+         background: #f1f5f9;
+         text-align: center;
+         font-size: 18px;
+         }
+         .table-wrapper td[data-label="Kolo"]::before {
+         content: "Kolo";
+         display: block;
+         font-size: 10px;
+         font-weight: 700;
+         color: #64748b;
+         text-transform: uppercase;
+         }
+         .table-wrapper td[data-label="Rezultat"] { grid-area: result; }
+         .table-wrapper td[data-label="Termin"] { grid-area: date; font-size: 12px; color: #64748b; }
+         .table-wrapper td[data-label="Akcije"] { grid-area: actions; margin-top: 8px; }
+         .row-actions {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         }
+         }
       </style>
    </head>
    <body>
@@ -804,11 +1104,11 @@
          <!-- MAIN FORM CARD -->
          <div class="card">
             <h1 class="card-title">Upravljanje mečevima</h1>
-            <div class="form-group">
-               <label class="form-label">Kolo</label>
-               <input id="round" type="number" placeholder="Unesite broj kola">
-            </div>
-            <div class="input-row date-time-row">
+            <div class="input-row-3 date-time-row">
+               <div class="form-group">
+                  <label class="form-label">Kolo</label>
+                  <input id="round" type="number" placeholder="Broj kola">
+               </div>
                <div class="form-group">
                   <label class="form-label">Datum</label>
                   <input id="date" type="date">
@@ -818,52 +1118,47 @@
                   <input id="time" type="time">
                </div>
             </div>
-            <div class="input-row">
-               <div class="form-group">
-                  <label class="form-label">Golovi Crveni</label>
-                  <input id="red" type="number" placeholder="0" readonly>
+            <div class="form-group">
+               <label class="form-label">Rezultat</label>
+               <div class="scoreboard">
+                  <div class="score-side red">
+                     <span class="score-team">Crveni</span>
+                     <input id="red" type="number" placeholder="0" readonly aria-label="Golovi Crveni">
+                  </div>
+                  <span class="score-sep">:</span>
+                  <div class="score-side blue">
+                     <input id="blue" type="number" placeholder="0" readonly aria-label="Golovi Plavi">
+                     <span class="score-team">Plavi</span>
+                  </div>
                </div>
-               <div class="form-group">
-                  <label class="form-label">Golovi Plavi</label>
-                  <input id="blue" type="number" placeholder="0" readonly>
-               </div>
+               <p class="score-hint">Računa se automatski iz strelaca ispod.</p>
             </div>
             <div class="form-group">
                <label class="form-label">Info o meču (opciono)</label>
                <textarea id="info" placeholder="Dodajte dodatne informacije o meču..."></textarea>
             </div>
-            <!-- IGRALI CRVENI -->
-            <div class="section-header">
-               <div class="section-icon red">👥</div>
-               <div class="section-title">Igrali – Crveni</div>
+            <div class="teams">
+               <!-- CRVENI -->
+               <section class="team-panel red">
+                  <div class="team-panel-head"><span class="team-dot"></span>Crveni</div>
+                  <div class="sub-title">Igrali <span class="count" id="playedRedCount">0</span></div>
+                  <div class="players-grid" id="playedRed"></div>
+                  <div class="sub-title">Strelci <span class="sub-hint">klik = +1 gol</span></div>
+                  <div class="players-grid" id="scorersRedPlayers"></div>
+                  <div class="scorers-tags" id="scorersRedTags"></div>
+                  <button type="button" class="own-goal-btn" id="redOwnGoalBtn">+ Autogol Crvenih <span>(gol za Plave)</span></button>
+               </section>
+               <!-- PLAVI -->
+               <section class="team-panel blue">
+                  <div class="team-panel-head"><span class="team-dot"></span>Plavi</div>
+                  <div class="sub-title">Igrali <span class="count" id="playedBlueCount">0</span></div>
+                  <div class="players-grid" id="playedBlue"></div>
+                  <div class="sub-title">Strelci <span class="sub-hint">klik = +1 gol</span></div>
+                  <div class="players-grid" id="scorersBluePlayers"></div>
+                  <div class="scorers-tags" id="scorersBlueTags"></div>
+                  <button type="button" class="own-goal-btn" id="blueOwnGoalBtn">+ Autogol Plavih <span>(gol za Crvene)</span></button>
+               </section>
             </div>
-            <div class="players-grid" id="playedRed"></div>
-            <!-- STRELCI CRVENI -->
-            <div class="section-header">
-               <div class="section-icon red">⚽</div>
-               <div class="section-title">Strelci – Crveni</div>
-            </div>
-            <div class="players-grid" id="scorersRedPlayers"></div>
-            <div class="scorers-tags" id="scorersRedTags"></div>
-            <button type="button" class="btn btn-secondary" id="redOwnGoalBtn">
-            Autogol – Crveni
-            </button>
-            <!-- IGRALI PLAVI -->
-            <div class="section-header">
-               <div class="section-icon blue">👥</div>
-               <div class="section-title">Igrali – Plavi</div>
-            </div>
-            <div class="players-grid" id="playedBlue"></div>
-            <!-- STRELCI PLAVI -->
-            <div class="section-header">
-               <div class="section-icon blue">⚽</div>
-               <div class="section-title">Strelci – Plavi</div>
-            </div>
-            <div class="players-grid" id="scorersBluePlayers"></div>
-            <div class="scorers-tags" id="scorersBlueTags"></div>
-            <button type="button" class="btn btn-secondary" id="blueOwnGoalBtn">
-            Autogol – Plavi
-            </button>
             <!-- ACTION BUTTONS -->
             <div class="form-actions">
                <button class="btn btn-primary" id="saveBtn">Sačuvaj meč</button>
@@ -959,8 +1254,28 @@
            });
          
            if (pendingPlayed) applyPlayedSelection(pendingPlayed);
+           updateIndicators();
          }
          
+         /* BROJAČI — koliko je igralo i koliko je golova dao svaki strelac */
+         function updateIndicators() {
+           document.getElementById("playedRedCount").textContent =
+             document.querySelectorAll("#playedRed .player-btn.active").length;
+           document.getElementById("playedBlueCount").textContent =
+             document.querySelectorAll("#playedBlue .player-btn.active").length;
+
+           const goals = {};
+           scorers.forEach(s => {
+             if (s.type !== "own_goal") goals[s.id] = (goals[s.id] || 0) + 1;
+           });
+           document.querySelectorAll("#scorersRedPlayers .player-btn, #scorersBluePlayers .player-btn")
+             .forEach(btn => {
+               const n = goals[btn.dataset.id];
+               if (n) btn.dataset.goals = n;
+               else delete btn.dataset.goals;
+             });
+         }
+
          /* APPLY PLAYED SELECTION */
          function applyPlayedSelection(played) {
            document.querySelectorAll("#playedRed .player-btn, #playedBlue .player-btn")
@@ -971,6 +1286,7 @@
              const btn = document.querySelector(`${container} .player-btn[data-id="${playerId}"]`);
              if (btn) btn.classList.add("active");
            });
+           updateIndicators();
          }
          
          /* EVENT DELEGATION */
@@ -979,6 +1295,7 @@
              if (e.target.classList.contains("player-btn")) {
                e.target.classList.toggle("active");
                pendingPlayed = getPlayed();
+               updateIndicators();
              }
            });
          
@@ -986,6 +1303,7 @@
              if (e.target.classList.contains("player-btn")) {
                e.target.classList.toggle("active");
                pendingPlayed = getPlayed();
+               updateIndicators();
              }
            });
             })();
@@ -1047,7 +1365,7 @@
          
          const ogLabel = s.type === "own_goal" ? " (OG)" : "";
          
-         const tag = `<div class="tag">${escapeHtml(name)}${ogLabel}<button type="button" data-remove-index="${i}">×</button></div>`;
+         const tag = `<div class="tag${s.type === "own_goal" ? " own-goal" : ""}">${escapeHtml(name)}${ogLabel}<button type="button" data-remove-index="${i}">×</button></div>`;
          
              if (s.team==="crveni")
                document.getElementById("scorersRedTags").innerHTML += tag;
@@ -1056,6 +1374,7 @@
            });
          
            autoSetGoals();
+           updateIndicators();
          }
          
          function removeGoalByIndex(i) {
@@ -1319,7 +1638,7 @@
                tbody.innerHTML+=`
                  <tr>
                    <td data-label="Kolo"><strong>${escapeHtml(m.round)}</strong></td>
-                   <td data-label="Rezultat">Crveni <strong>${escapeHtml(m.red)}</strong> - <strong>${escapeHtml(m.blue)}</strong> Plavi</td>
+                   <td data-label="Rezultat"><span class="res-team red">Crveni</span> <strong class="res-score">${escapeHtml(m.red)} : ${escapeHtml(m.blue)}</strong> <span class="res-team blue">Plavi</span></td>
                    <td data-label="Termin">${escapeHtml(m.date)} ${escapeHtml(m.time)}</td>
                   <td data-label="Akcije">
                     <div class="row-actions">
