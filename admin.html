@@ -898,6 +898,7 @@
          let scorers = [];
          let editingId = null;
          let pendingPlayed = null;
+         let allMatches = {};
          
          
          function escapeHtml(value) {
@@ -1132,6 +1133,12 @@
              alert("Greške:\n\n"+e.join("\n"));
              return false;
            }
+
+           const duplicate = Object.entries(allMatches).some(([id, m]) =>
+             id !== editingId && Number(m.round) === Number(round.value));
+           if (duplicate && !confirm(`Kolo ${round.value} već postoji. Sačuvati svejedno?`)) {
+             return false;
+           }
            return true;
          }
          
@@ -1304,8 +1311,9 @@
          onValue(window.dbRef("matches"), snap=>{
            const tbody=document.getElementById("matchList");
            tbody.innerHTML="";
+           allMatches = snap.val() || {};
          
-           Object.entries(snap.val()||{})
+           Object.entries(allMatches)
              .sort((a,b)=>b[1].timestamp-a[1].timestamp)
              .forEach(([id,m])=>{
                tbody.innerHTML+=`
